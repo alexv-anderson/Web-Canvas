@@ -237,7 +237,15 @@ class LayeredLayout {
  * Supplies the URL for the index of the host
  */
 function getHostURL(): string {
-    return "http://127.0.0.1:8000/"
+    return "http://127.0.0.1:8000/";
+}
+
+function getConfigDirURL(): string {
+    return getHostURL() + "config/";
+}
+
+function getImageDirURL(): string {
+    return getHostURL() + "images/";
 }
 
 /**
@@ -247,7 +255,7 @@ function getHostURL(): string {
 function getSpriteMap(onLoaded: (map: SpriteMap) => void): void {
 
     // Load the sprite configuration data
-    loadJSON(getHostURL() + "sprite-config.json", (json) => {
+    loadJSON(getConfigDirURL() + "sprite-config.json", (json) => {
 
         // Type information for the sprite configuration data
         interface SpriteInitInfo {
@@ -285,7 +293,7 @@ function getSpriteMap(onLoaded: (map: SpriteMap) => void): void {
         // For each sprite
         (json.spriteImageInfo as Array<SpriteInitInfo>).forEach((sii) => {
             // Load the image file
-            loadPNG(getHostURL() + sii.fileName, (image: HTMLImageElement) => {
+            loadPNG(getImageDirURL() + sii.fileName, (image: HTMLImageElement) => {
 
                 // Add the sprite to the map
                 map.addSprite(
@@ -446,7 +454,7 @@ type ActorConfigData = {
 
 function getWorld(callback: (world: World) => void): void {
     getSpriteMap((spriteMap: SpriteMap) => {
-        loadJSON(getHostURL() + "world-config.json", (config: WorldConfig) => {
+        loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
             callback(new World(spriteMap, config));
         });
     });
