@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "ES6",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "lib": [ "es6", "dom" ],
+    "target": "es6"
+  },
+  "files": [
+    "sprite.ts"
+  ]
+}
