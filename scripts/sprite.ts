@@ -6,28 +6,20 @@ class Sprite {
      * Initializes the sprite.
      * 
      * @param image The image which holds the sprite
-     * @param width The width of the image in pixels
-     * @param height The height of the image in pixels
      */
-    constructor(image: HTMLImageElement,
-        width: number,
-        height: number)
+    constructor(image: HTMLImageElement)
     /**
      * Initializes the sprite.
      * 
      * A sprite is a image file which contains a single column or row of one or more frames.
      * 
      * @param image The image which holds the sprite
-     * @param width The width of the image in pixels
-     * @param height The height of the image in pixels
      * @param numberOfFrames The number of frames in the image
      * @param horizontal Indicates if the frames are in a single row
      * @param loop Indicates if the frames should loop
      */
     constructor(
         image: HTMLImageElement,
-        width: number,
-        height: number,
         numberOfFrames: number,
         horizontal: boolean,
         loop: boolean
@@ -38,16 +30,12 @@ class Sprite {
      * A sprite is a image file which contains a single column or row of one or more frames.
      * 
      * @param image The image which holds the sprite
-     * @param imageWidth The width of the image in pixels
-     * @param imageHeight The height of the image in pixels
      * @param numberOfFrames The number of frames in the image
      * @param horizontal Indicates if the frames are in a single row
      * @param loop Indicates if the frames should loop
      */
     constructor(
         image: HTMLImageElement,
-        imageWidth: number,
-        imageHeight: number,
         numberOfFrames?: number,
         horizontal?: boolean,
         loop?: boolean
@@ -76,21 +64,21 @@ class Sprite {
 
         // Toggle controls whether frames progress to the right or left
         if(this.horizontal) {
-            srcX = this.frameIndex * this.getFrameWidth();
+            srcX = this.frameIndex * this.width;
         } else {
-            srcY = this.frameIndex * this.getFrameHeight();
+            srcY = this.frameIndex * this.height;
         }
 
         context.drawImage(
             this.image,
             srcX,
             srcY,
-            this.getFrameWidth(),
-            this.getFrameHeight(),
+            this.width,
+            this.height,
             canvasX,
             canvasY,
-            this.getFrameWidth(),
-            this.getFrameHeight()
+            this.width,
+            this.height
         );
     }
 
@@ -109,22 +97,20 @@ class Sprite {
         }
     }
 
+    /**
+     * The width of the sprite
+     */
     public get width(): number {
-        return this.getFrameWidth();
-    }
-    public get height(): number {
-        return this.getFrameHeight();
-    }
-
-    private getFrameWidth(): number {
         if(this.horizontal) {
             return this.image.width / this.numberOfFrames;
         } else {
             return this.image.width;
         }
     }
-
-    private getFrameHeight(): number {
+    /**
+     * The height of the sprite
+     */
+    public get height(): number {
         if(this.horizontal) {
             return this.image.height;
         } else {
@@ -181,6 +167,10 @@ class SpriteMap {
         this.map.get(key).render(context, x, y);
     }
 
+    /**
+     * Supplies the sprite associated with the given key
+     * @param key The key for the desired sprite
+     */
     public getSprite(key: string): Sprite {
         return this.map.get(key);
     }
@@ -190,11 +180,23 @@ class SpriteMap {
 
 type LayerConfig = { [key in string]: Array<Array<number>> };
 
+/**
+ * Represents a layer of sprites which for the background/floor
+ */
 class Layer {
+    /**
+     * Initializes the layer
+     * @param grid The configuration for the layer
+     */
     constructor(grid: LayerConfig) {
         this._grid = grid;
     }
 
+    /**
+     * Renders the layer on the supplied canvas using the given sprite map
+     * @param spriteMap A map from keys to sprites
+     * @param context The rendering context of the canvas on which the layer should be rendered
+     */
     public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
         for(let key in this._grid) {
             let pairs = this._grid[key];
@@ -213,19 +215,40 @@ class Layer {
     private _grid: LayerConfig;
 }
 
+/**
+ * Represents a list of layers
+ */
 class LayeredLayout {
+    /**
+     * Adds a layer on top of the existing layers
+     * @param layer The layer to be placed at the top of the list
+     */
     public addLayer(layer: Layer): void {
         this.layers.push(layer);
     }
 
+    /**
+     * Supplies the layer at the given index.
+     * 
+     * Note: the lowest layer has an index of 0
+     * @param index The index of the desired layer
+     */
     public getLayer(index: number): Layer {
         return this.layers[index];
     }
 
+    /**
+     * The number of layers in this layout
+     */
     public get depth(): number {
         return this.layers.length;
     }
 
+    /**
+     * Renders the layers of the layout in order
+     * @param spriteMap A mapping from keys to sprites
+     * @param context The rendering context of the canvas on which the layout should be rendered
+     */
     public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
         this.layers.forEach((layer: Layer) => { layer.render(spriteMap, context); });
     }
@@ -240,10 +263,16 @@ function getHostURL(): string {
     return "http://127.0.0.1:8000/";
 }
 
+/**
+ * Supplies the URL for the host's configuration directory
+ */
 function getConfigDirURL(): string {
     return getHostURL() + "config/";
 }
 
+/**
+ * Supplies the URL for the host's image directory
+ */
 function getImageDirURL(): string {
     return getHostURL() + "images/";
 }
@@ -300,8 +329,6 @@ function getSpriteMap(onLoaded: (map: SpriteMap) => void): void {
                     sii.mapKey,
                     new Sprite(
                         image,
-                        sii.width,
-                        sii.height,
                         sii.numberOfFrames,
                         sii.isHorizontal,
                         sii.loop
@@ -315,21 +342,41 @@ function getSpriteMap(onLoaded: (map: SpriteMap) => void): void {
     });
 }
 
+/**
+ * Represents a point in 2D Cartesian space
+ */
 class Point {
+    /**
+     * Initializes the point
+     * @param x The point's x-coordinate
+     * @param y The point's y-coordinate
+     */
     constructor(x: number, y: number) {
         this._x = x;
         this._y = y;
     }
 
+    /**
+     * The point's x-coordinate
+     */
     public get x(): number {
         return this._x;
     }
+    /**
+     * The point's x-coordinate
+     */
     public set x(x: number) {
         this._x = x;
     }
+    /**
+     * The point's y-coordinate
+     */
     public get y(): number {
         return this._y;
     }
+    /**
+     * The point's y-coordinate
+     */
     public set y(y: number) {
         this._y = y;
     }
@@ -338,8 +385,17 @@ class Point {
     private _y: number;
 }
 
+/**
+ * Represents something at can move due to user input on the canvas
+ */
 class Actor {
 
+    /**
+     * Initializes the actor
+     * @param location The center point of the actor's initial location
+     * @param spriteIndex The index of the actor's initial sprite
+     * @param sprites An array of the actor's sprites
+     */
     constructor(
         location: Point,
         spriteIndex: number,
@@ -350,6 +406,10 @@ class Actor {
         this.sprites = sprites;
     }
 
+    /**
+     * Updates the actor using input from the user
+     * @param inputAccumalator Input which has been supplied by the user
+     */
     public update(inputAccumalator: InputAccumalator) {
         if(inputAccumalator.arrowUpDown)
             this.location.y -= 5;
@@ -361,6 +421,10 @@ class Actor {
             this.location.x += 5;
     }
 
+    /**
+     * Renders the actor on the canvas
+     * @param context The rendering context of the canvas on which the actor should be rendered
+     */
     public render(context: CanvasRenderingContext2D): void {
         let sprite = this.sprites[this.spriteIndex];
         sprite.render(
@@ -375,7 +439,15 @@ class Actor {
     private sprites: Array<Sprite>;
 }
 
+/**
+ * Reperesents everything on the canvas
+ */
 class World {
+    /**
+     * Initializes the world
+     * @param spriteMap A mapping between keys and sprites
+     * @param config Configuration data for the world
+     */
     constructor(spriteMap: SpriteMap, config: WorldConfig) {
         this.spriteMap = spriteMap;
 
@@ -393,6 +465,10 @@ class World {
         this._viewWidth = config.view.width;
     }
 
+    /**
+     * Updates everything in the world
+     * @param inputAccumalator Input collected from the user
+     */
     public update(inputAccumalator: InputAccumalator) {
         if(inputAccumalator.mouseDown) {
             this.targetLocations.push(new Point(
@@ -406,6 +482,10 @@ class World {
         this.actors.forEach((actor: Actor) => { actor.update(inputAccumalator); })
     }
 
+    /**
+     * Renders the world on the given canvas
+     * @param context The rendering context of the canvas on which the world should be rendered
+     */
     public render(context: CanvasRenderingContext2D): void {
         // Draw sprites
         this.layout.render(this.spriteMap, context);
@@ -452,7 +532,11 @@ type ActorConfigData = {
     spriteKeys: Array<string>
 }
 
-function getWorld(callback: (world: World) => void): void {
+/**
+ * Loads the world
+ * @param callback Called once the world has been initialized
+ */
+function loadWorld(callback: (world: World) => void): void {
     getSpriteMap((spriteMap: SpriteMap) => {
         loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
             callback(new World(spriteMap, config));
@@ -460,7 +544,14 @@ function getWorld(callback: (world: World) => void): void {
     });
 }
 
+/**
+ * Collects input from the user
+ */
 class InputAccumalator {
+    /**
+     * Initializes the accumalator
+     * @param canvas The canvas from which click events should be collected
+     */
     constructor(canvas: HTMLCanvasElement) {
         document.addEventListener("mousedown", (event: MouseEvent) => {
             let rect = canvas.getBoundingClientRect();
@@ -484,27 +575,47 @@ class InputAccumalator {
         this.reset();
     }
 
-
+    /**
+     * Flag indicating if the mousedown event has occurred on the canvase
+     */
     public get mouseDown(): boolean {
         return this._mouseDownPoint !== undefined;
     }
+    /**
+     * The point on the canvas relative to its top-left corner at which the mousedown event occurred
+     */
     public get mouseDownPoint(): Point | undefined {
         return this._mouseDownPoint;
     }
 
+    /**
+     * Flag indicating if the up arrow was pressed
+     */
     public get arrowUpDown(): boolean {
         return this._arrowUpDown;
     }
+    /**
+     * Flag indicating if the down arrow was pressed
+     */
     public get arrowDownDown(): boolean {
         return this._arrowDownDown;
     }
+    /**
+     * Flag indicating if the left arrow was pressed
+     */
     public get arrowLeftDown(): boolean {
         return this._arrowLeftDown;
     }
+    /**
+     * Flag indicating if the right arrow was pressed
+     */
     public get arrowRightDown(): boolean {
         return this._arrowRightDown;
     }
 
+    /**
+     * Resets all of the data
+     */
     public reset(): void {
         this._mouseDownPoint = undefined;
 
@@ -526,7 +637,7 @@ class InputAccumalator {
  * Begins loading everything once the body of the document has loaded
  */
 function onBodyLoad() {
-    getWorld((world: World) => {
+    loadWorld((world: World) => {
         let canvas = document.getElementById("theCanvas") as HTMLCanvasElement;
 
         canvas.height = world.viewHeight;
