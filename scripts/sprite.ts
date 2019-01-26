@@ -55,30 +55,29 @@ class Sprite {
      * Draws the current frame of the sprite on the canvas at the given coordinates.
      * 
      * @param context The canvas' 2D rendering context
-     * @param canvasX The x-coordinate on the canvas of the top-left corner of the render
-     * @param canvasY The y-coordinate on the canvas of the top-left corner of the render
+     * @param center The center point of the sprite's frame on the canvas
      */
-    public render(context: CanvasRenderingContext2D, canvasX: number, canvasY: number): void {
+    public render(context: CanvasRenderingContext2D, center: Point): void {
         let srcX: number = 0;
         let srcY: number = 0;
 
         // Toggle controls whether frames progress to the right or left
         if(this.horizontal) {
-            srcX = this.frameIndex * this.width;
+            srcX = this.frameIndex * this.frameWidth;
         } else {
-            srcY = this.frameIndex * this.height;
+            srcY = this.frameIndex * this.frameHeight;
         }
 
         context.drawImage(
             this.image,
             srcX,
             srcY,
-            this.width,
-            this.height,
-            canvasX,
-            canvasY,
-            this.width,
-            this.height
+            this.frameWidth,
+            this.frameHeight,
+            center.x - (this.frameWidth / 2),
+            center.y - (this.frameHeight / 2),
+            this.frameWidth,
+            this.frameHeight
         );
     }
 
@@ -98,9 +97,9 @@ class Sprite {
     }
 
     /**
-     * The width of the sprite
+     * The width of the sprite's frame
      */
-    public get width(): number {
+    public get frameWidth(): number {
         if(this.horizontal) {
             return this.image.width / this.numberOfFrames;
         } else {
@@ -108,9 +107,9 @@ class Sprite {
         }
     }
     /**
-     * The height of the sprite
+     * The height of the sprite's frame
      */
-    public get height(): number {
+    public get frameHeight(): number {
         if(this.horizontal) {
             return this.image.height;
         } else {
@@ -160,11 +159,10 @@ class SpriteMap {
      * 
      * @param context The canvas' 2D rendering context
      * @param key The key of the sprite to be drawn at the given coordinates
-     * @param x The x-coordinate on the canvas of the top-left corner of the render
-     * @param y The y-coordinate on the canvas of the top-left corner of the render
+     * @param center The center point of the sprite's frame on the canvas
      */
-    public render(context: CanvasRenderingContext2D, key: string, x: number, y: number) {
-        this.map.get(key).render(context, x, y);
+    public render(context: CanvasRenderingContext2D, key: string, center: Point): void {
+        this.map.get(key).render(context, center);
     }
 
     /**
@@ -205,8 +203,10 @@ class Layer {
                 spriteMap.render(
                     context,
                     key,
-                    pair[1] * 32,
-                    pair[0] * 32
+                    new Point(
+                        (pair[1] * 32) + 16,
+                        (pair[0] * 32) + 16
+                    )
                 )
             }
         }
@@ -429,8 +429,10 @@ class Actor {
         let sprite = this.sprites[this.spriteIndex];
         sprite.render(
             context,
-            this.location.x - (sprite.width / 2),
-            this.location.y - (sprite.height / 2)
+            new Point(
+                this.location.x - (sprite.frameWidth / 2) + 16,
+                this.location.y - (sprite.frameHeight / 2) + 16
+            )
         );
     }
 
@@ -493,8 +495,10 @@ class World {
         this.targetLocations.forEach((point: Point) => { this.spriteMap.render(
             context,
             "target",
-            point.x - 16,
-            point.y - 16
+            new Point(
+                point.x,
+                point.y
+            )
         )});        
 
         this.actors.forEach((actor: Actor) => { actor.render(context); })
