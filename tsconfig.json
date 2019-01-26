@@ -8,6 +8,7 @@
     "target": "es6"
   },
   "files": [
-    "scripts/sprite.ts"
+    "scripts/canvas-grid-lib.ts",
+    "scripts/canvas-grid-local.ts"
   ]
 }

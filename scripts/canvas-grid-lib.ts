@@ -1,3 +1,7 @@
+/// <reference path="./general-lib.ts" />
+/// <reference path="./canvas-grid-interface.ts" />
+/// <reference path="./canvas-grid-local.ts" />
+
 /**
  * Represents a single sprite which may be composed of one or more frames.
  */
@@ -176,8 +180,6 @@ class SpriteMap {
     private map: Map<string, Sprite>;
 }
 
-type LayerConfig = { [key in string]: Array<Array<number>> };
-
 /**
  * Represents a layer of sprites which for the background/floor
  */
@@ -257,46 +259,14 @@ class LayeredLayout {
 }
 
 /**
- * Supplies the URL for the index of the host
- */
-function getHostURL(): string {
-    return "http://127.0.0.1:8000/";
-}
-
-/**
- * Supplies the URL for the host's configuration directory
- */
-function getConfigDirURL(): string {
-    return getHostURL() + "config/";
-}
-
-/**
- * Supplies the URL for the host's image directory
- */
-function getImageDirURL(): string {
-    return getHostURL() + "images/";
-}
-
-/**
  * Build a SpriteMap for the background tiles
  * @param onLoaded Called once all of the sprites have been loaded from the server
  */
-function getSpriteMap(onLoaded: (map: SpriteMap) => void): void {
+function loadSpriteMap(onLoaded: (map: SpriteMap) => void): void {
 
     // Load the sprite configuration data
-    loadJSON(getConfigDirURL() + "sprite-config.json", (json) => {
+    loadSpriteConfig((config: SpriteConfig) => {
 
-        // Type information for the sprite configuration data
-        interface SpriteInitInfo {
-            fileName: string,
-            mapKey: string,
-            width: number,
-            height: number,
-            numberOfFrames: number,
-            isHorizontal?: boolean,
-            loop?: boolean
-        }
-        
         // Create the map
         let map = new SpriteMap();
 
@@ -317,10 +287,10 @@ function getSpriteMap(onLoaded: (map: SpriteMap) => void): void {
         }
 
         // Delay the callback until all of the sprites are loaded
-        let countingCallback = generateCountingDelayCallback((json.spriteImageInfo as Array<SpriteInitInfo>).length);
+        let countingCallback = generateCountingDelayCallback(config.spriteImageInfo.length);
         
         // For each sprite
-        (json.spriteImageInfo as Array<SpriteInitInfo>).forEach((sii) => {
+        config.spriteImageInfo.forEach((sii) => {
             // Load the image file
             loadPNG(getImageDirURL() + sii.fileName, (image: HTMLImageElement) => {
 
@@ -525,26 +495,16 @@ class World {
     private spriteMap: SpriteMap;
 }
 
-type WorldConfig = {
-    view: { height: number, width: number },
-    layers: Array<LayerConfig>,
-    actorInitialInfo: Array<ActorConfigData>
-}
-type ActorConfigData = {
-    initialLocation: Array<number>,
-    initialSpriteIndex: number,
-    spriteKeys: Array<string>
-}
-
 /**
  * Loads the world
  * @param callback Called once the world has been initialized
  */
 function loadWorld(callback: (world: World) => void): void {
-    getSpriteMap((spriteMap: SpriteMap) => {
-        loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
-            callback(new World(spriteMap, config));
-        });
+    loadSpriteMap((spriteMap: SpriteMap) => {
+        loadWorldConfig((config: WorldConfig) => callback(new World(spriteMap, config)));
+        // loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
+        //     callback(new World(spriteMap, config));
+        // });
     });
 }
 
@@ -642,79 +602,27 @@ class InputAccumalator {
  */
 function onBodyLoad() {
     loadWorld((world: World) => {
-        let canvas = document.getElementById("theCanvas") as HTMLCanvasElement;
+        getCanvas((canvas: HTMLCanvasElement) => {
+            canvas.height = world.viewHeight;
+            canvas.width = world.viewWidth;
 
-        canvas.height = world.viewHeight;
-        canvas.width = world.viewWidth;
+            let context = canvas.getContext("2d");
 
-        let context = canvas.getContext("2d");
+            let ia = new InputAccumalator(canvas);
 
-        let ia = new InputAccumalator(canvas);
+            // Start update loop
+            setInterval(
+                () => {
+                    context.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Start update loop
-        setInterval(
-            () => {
-                context.clearRect(0, 0, canvas.width, canvas.height);
+                    // Updated animated sprites
+                    world.update(ia);
+                    ia.reset();
 
-                // Updated animated sprites
-                world.update(ia);
-                ia.reset();
-
-                world.render(context);
-            },
-            250 // milliseconds
-        );
+                    world.render(context);
+                },
+                250 // milliseconds
+            );
+        });
     });
-}
-
-/**
- * Loads a PNG file from a server
- * @param pngURL The URL of the PNG file
- * @param callback A function which will process the image element after it has been loaded
- */
-function loadPNG(pngURL: string, callback: (image: HTMLImageElement) => void) {
-    // Based on example found at https://www.html5rocks.com/en/tutorials/file/xhr2/
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", pngURL, true);
-    xhr.responseType = "blob";
-    xhr.onload = function(this: XMLHttpRequest, event: ProgressEvent) {
-        if(this.status == 200) {
-            let blob = this.response;
-            let img = document.createElement("img");
-            img.onload = (event: Event) => {
-                window.URL.revokeObjectURL(img.src);
-            }
-            img.src = window.URL.createObjectURL(blob);
-            callback(img);
-        }
-    }
-    xhr.send();
-}
-
-/**
- * Loads a JSON file from a server
- * @param jsonURL The URL of the JSON file
- * @param callback A function which will process the object after it has been loaded
- */
-function loadJSON(jsonURL: string, callback: (json: any) => void) {
-    loadWebResource(jsonURL, "GET", "application/json", (text) => callback(JSON.parse(text)));
-}  
-
-/**
- * Loads the text of a resource from a server
- * @param url The URL of the resource to be loaded
- * @param method The method to be used to load the resource (GET or POST)
- * @param mimeType The mime type of the resource
- * @param callback A function which will process the text of the resource after it has been loaded
- */
-function loadWebResource(url: string, method: string, mimeType: string, callback: (text: any) => void) {
-    let xobj = new XMLHttpRequest();
-    xobj.overrideMimeType(mimeType);
-    xobj.open(method, url, true);
-    xobj.onreadystatechange = function() {
-        if(xobj.readyState === 4 && xobj.status === 200) {
-            callback(xobj.responseText);
-        }
-    }
-    xobj.send();
 }
