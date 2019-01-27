@@ -434,8 +434,13 @@ class World {
     constructor(spriteMap: SpriteMap, config: WorldConfig) {
         this.spriteMap = spriteMap;
 
-        if(config.actors) {
-            config.actors.forEach((actor: Actor) => { this.actors.push(actor); });
+        if(config.actorConfigs) {
+            for(let name in config.actorConfigs) {
+                for(let actorConfig of config.actorConfigs[name])
+                    this.actors.push(eval(
+                        "new " + name + "(new Point(" + actorConfig.location[0] + ", " + actorConfig.location[1] + "), " + actorConfig.isi + ", " + JSON.stringify(actorConfig.sprites) + ")"
+                    ));
+            }
         }
 
         config.layers.forEach((lc: LayerConfig) => { this.layout.addLayer(new Layer(lc)); });

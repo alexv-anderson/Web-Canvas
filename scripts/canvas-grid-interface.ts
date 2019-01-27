@@ -16,7 +16,15 @@ type LayerConfig = { [key in string]: Array<Array<number>> };
 type WorldConfig = {
     view: { height: number, width: number },
     layers: Array<LayerConfig>,
-    actors?: Array<Actor>
+    actorConfigs?: {
+        [key in string]: [
+            {
+                location: Array<number>,
+                isi: number,
+                sprites: Array<string>
+            }
+        ]
+    }
 }
 
 type SpriteConfig = { spriteImageInfo: Array<SpriteInitInfo> }

@@ -16,14 +16,7 @@ function getImageDirURL(): string {
  * @param onLoaded Called once the configuration data has been loaded
  */
 function loadWorldConfig(onLoaded: (config: WorldConfig) => void): void {
-    loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
-        config.actors = [ new Soldier(
-            new Point(70, 30),
-            0,
-            [ "rsl" ]
-        ) ];
-        onLoaded(config);
-    });
+    loadJSON(getConfigDirURL() + "world-config.json", onLoaded);
 }
 
 /**
