@@ -166,7 +166,7 @@ class SpriteMap {
      * @param center The center point of the sprite's frame on the canvas
      */
     public render(context: CanvasRenderingContext2D, key: string, center: Point): void {
-        this.map.get(key).render(context, center);
+        this.getSprite(key).render(context, center);
     }
 
     /**
@@ -174,7 +174,12 @@ class SpriteMap {
      * @param key The key for the desired sprite
      */
     public getSprite(key: string): Sprite {
-        return this.map.get(key);
+        let sprite = this.map.get(key);
+        if(sprite === undefined) {
+            throw new ReferenceError("No sprite for key: " + key);
+        } else {
+            return sprite;
+        }
     }
 
     private map: Map<string, Sprite>;
@@ -295,15 +300,25 @@ function loadSpriteMap(onLoaded: (map: SpriteMap) => void): void {
             loadPNG(getImageDirURL() + sii.fileName, (image: HTMLImageElement) => {
 
                 // Add the sprite to the map
-                map.addSprite(
-                    sii.mapKey,
-                    new Sprite(
-                        image,
-                        sii.numberOfFrames,
-                        sii.isHorizontal,
-                        sii.loop
-                    )
-                );
+
+                if(sii.isHorizontal !== undefined && sii.loop !== undefined) {
+                    map.addSprite(
+                        sii.mapKey,
+                        new Sprite(
+                            image,
+                            sii.numberOfFrames,
+                            sii.isHorizontal,
+                            sii.loop
+                        )
+                    );
+                } else {
+                    map.addSprite(
+                        sii.mapKey,
+                        new Sprite(
+                            image
+                        )
+                    );
+                }
 
                 // count for the callback
                 countingCallback(map, onLoaded);
@@ -358,7 +373,7 @@ class Point {
 /**
  * Represents something at can move due to user input on the canvas
  */
-class Actor {
+abstract class Actor {
 
     /**
      * Initializes the actor
@@ -369,46 +384,42 @@ class Actor {
     constructor(
         location: Point,
         spriteIndex: number,
-        sprites: Array<Sprite>
+        sprites: Array<string>
     ) {
         this.location = location;
         this.spriteIndex = spriteIndex;
-        this.sprites = sprites;
+        this.spriteKeys = sprites;
     }
 
     /**
      * Updates the actor using input from the user
      * @param inputAccumalator Input which has been supplied by the user
      */
-    public update(inputAccumalator: InputAccumalator) {
-        if(inputAccumalator.arrowUpDown)
-            this.location.y -= 5;
-        else if(inputAccumalator.arrowDownDown)
-            this.location.y += 5;
-        else if(inputAccumalator.arrowLeftDown)
-            this.location.x -= 5;
-        else if(inputAccumalator.arrowRightDown)
-            this.location.x += 5;
-    }
+    public abstract update(inputAccumalator: InputAccumalator): void; // {
 
     /**
      * Renders the actor on the canvas
+     * @param spriteMap A map from keys to sprites
      * @param context The rendering context of the canvas on which the actor should be rendered
      */
-    public render(context: CanvasRenderingContext2D): void {
-        let sprite = this.sprites[this.spriteIndex];
-        sprite.render(
+    public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
+        spriteMap.getSprite(this.spriteKeys[this.spriteIndex]).render(
             context,
             new Point(
-                this.location.x - (sprite.frameWidth / 2) + 16,
-                this.location.y - (sprite.frameHeight / 2) + 16
+                this.location.x,
+                this.location.y
             )
         );
     }
 
+    protected move(dx: number, dy: number): void {
+        this.location.x += dx;
+        this.location.y += dy;
+    }
+
     private location: Point;
     private spriteIndex: number;
-    private sprites: Array<Sprite>;
+    private spriteKeys: Array<string>;
 }
 
 /**
@@ -423,13 +434,9 @@ class World {
     constructor(spriteMap: SpriteMap, config: WorldConfig) {
         this.spriteMap = spriteMap;
 
-        config.actorInitialInfo.forEach((acd: ActorConfigData) => {
-            this.actors.push(new Actor(
-                new Point(acd.initialLocation[0], acd.initialLocation[1]),
-                acd.initialSpriteIndex || 0,
-                acd.spriteKeys.map((key: string) => { return spriteMap.getSprite(key); })
-            ));
-        });
+        if(config.actors) {
+            config.actors.forEach((actor: Actor) => { this.actors.push(actor); });
+        }
 
         config.layers.forEach((lc: LayerConfig) => { this.layout.addLayer(new Layer(lc)); });
 
@@ -442,11 +449,11 @@ class World {
      * @param inputAccumalator Input collected from the user
      */
     public update(inputAccumalator: InputAccumalator) {
-        if(inputAccumalator.mouseDown) {
+        if(inputAccumalator.mouseDown && inputAccumalator.mouseDownPoint) {
             this.targetLocations.push(new Point(
                 inputAccumalator.mouseDownPoint.x,
                 inputAccumalator.mouseDownPoint.y
-            ))
+            ));
         }
 
         this.spriteMap.updateAllSprites();
@@ -471,7 +478,7 @@ class World {
             )
         )});        
 
-        this.actors.forEach((actor: Actor) => { actor.render(context); })
+        this.actors.forEach((actor: Actor) => { actor.render(this.spriteMap, context); })
     }
 
     public addTarget(point: Point): void {
@@ -502,9 +509,6 @@ class World {
 function loadWorld(callback: (world: World) => void): void {
     loadSpriteMap((spriteMap: SpriteMap) => {
         loadWorldConfig((config: WorldConfig) => callback(new World(spriteMap, config)));
-        // loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
-        //     callback(new World(spriteMap, config));
-        // });
     });
 }
 
@@ -611,8 +615,13 @@ function onBodyLoad() {
             let ia = new InputAccumalator(canvas);
 
             // Start update loop
-            setInterval(
+            let handle = setInterval(
                 () => {
+                    if(context === null) {
+                        clearInterval(handle);
+                        throw new Error("Could not load context for canvas");
+                    }
+
                     context.clearRect(0, 0, canvas.width, canvas.height);
 
                     // Updated animated sprites

@@ -16,7 +16,14 @@ function getImageDirURL(): string {
  * @param onLoaded Called once the configuration data has been loaded
  */
 function loadWorldConfig(onLoaded: (config: WorldConfig) => void): void {
-    loadJSON(getConfigDirURL() + "world-config.json", onLoaded);
+    loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
+        config.actors = [ new Soldier(
+            new Point(70, 30),
+            0,
+            [ "rsl" ]
+        ) ];
+        onLoaded(config);
+    });
 }
 
 /**
@@ -33,4 +40,26 @@ function loadSpriteConfig(onLoaded: (config: SpriteConfig) => void): void {
  */
 function getCanvas(callback: (canvas: HTMLCanvasElement) => void) {
     callback(document.getElementById("theCanvas") as HTMLCanvasElement);
+}
+
+class Soldier extends Actor {
+    public update(inputAccumalator: InputAccumalator): void {
+        let dx: number = 0;
+        let dy: number = 0;
+
+        if(inputAccumalator.arrowUpDown) {
+            dy -= 5;
+        }
+        if(inputAccumalator.arrowDownDown) {
+            dy += 5;
+        }
+        if(inputAccumalator.arrowLeftDown) {
+            dx -= 5;
+        }
+        if(inputAccumalator.arrowRightDown) {
+            dx += 5;
+        }
+
+        this.move(dx, dy);
+    }
 }
