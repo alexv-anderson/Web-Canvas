@@ -395,7 +395,7 @@ abstract class Actor {
      * Updates the actor using input from the user
      * @param inputAccumalator Input which has been supplied by the user
      */
-    public abstract update(inputAccumalator: InputAccumalator): void; // {
+    public abstract update(inputAccumalator: InputAccumalator): void;
 
     /**
      * Renders the actor on the canvas
@@ -425,15 +425,12 @@ abstract class Actor {
 /**
  * Reperesents everything on the canvas
  */
-class World {
+abstract class World {
     /**
      * Initializes the world
-     * @param spriteMap A mapping between keys and sprites
      * @param config Configuration data for the world
      */
-    constructor(spriteMap: SpriteMap, config: WorldConfig) {
-        this.spriteMap = spriteMap;
-
+    constructor(config: WorldConfig) {
         if(config.actorConfigs) {
             for(let name in config.actorConfigs) {
                 for(let actorConfig of config.actorConfigs[name])
@@ -451,43 +448,45 @@ class World {
 
     /**
      * Updates everything in the world
+     * @param spriteMap A map from keys to sprites
      * @param inputAccumalator Input collected from the user
      */
-    public update(inputAccumalator: InputAccumalator) {
-        if(inputAccumalator.mouseDown && inputAccumalator.mouseDownPoint) {
-            this.targetLocations.push(new Point(
-                inputAccumalator.mouseDownPoint.x,
-                inputAccumalator.mouseDownPoint.y
-            ));
-        }
+    public update(spriteMap: SpriteMap, inputAccumalator: InputAccumalator) {
+        this.onUpdate(inputAccumalator);
 
-        this.spriteMap.updateAllSprites();
+        spriteMap.updateAllSprites();
 
         this.actors.forEach((actor: Actor) => { actor.update(inputAccumalator); })
     }
 
+    public abstract onUpdate(inputAccumalator: InputAccumalator): void;
+
     /**
      * Renders the world on the given canvas
+     * @param spriteMap A map from keys to sprites
      * @param context The rendering context of the canvas on which the world should be rendered
      */
-    public render(context: CanvasRenderingContext2D): void {
+    public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
         // Draw sprites
-        this.layout.render(this.spriteMap, context);
+        this.layout.render(spriteMap, context);
 
-        this.targetLocations.forEach((point: Point) => { this.spriteMap.render(
+        this.adhocSprite.forEach((as: { key: string, center: Point}) => { spriteMap.render(
             context,
-            "target",
-            new Point(
-                point.x,
-                point.y
-            )
-        )});        
+            as.key,
+            as.center
+        )});
 
-        this.actors.forEach((actor: Actor) => { actor.render(this.spriteMap, context); })
+        this.actors.forEach((actor: Actor) => { actor.render(spriteMap, context); })
     }
 
     public addTarget(point: Point): void {
-        this.targetLocations.push(point);
+        this.addAdHocSprite("target", point);
+    }
+    public addAdHocSprite(key: string, center: Point): void {
+        this.adhocSprite.push({
+            key: key,
+            center: center
+        });
     }
 
     public get viewHeight(): number {
@@ -497,24 +496,14 @@ class World {
         return this._viewWidth;
     }
 
-    private targetLocations: Array<Point> = [];
+    private adhocSprite: Array<{ key: string, center: Point}> = [];
 
     private _viewHeight: number;
     private _viewWidth: number;
 
     private actors: Array<Actor> = [];
     private layout: LayeredLayout = new LayeredLayout();
-    private spriteMap: SpriteMap;
-}
-
-/**
- * Loads the world
- * @param callback Called once the world has been initialized
- */
-function loadWorld(callback: (world: World) => void): void {
-    loadSpriteMap((spriteMap: SpriteMap) => {
-        loadWorldConfig((config: WorldConfig) => callback(new World(spriteMap, config)));
-    });
+    //private spriteMap: SpriteMap;
 }
 
 /**
@@ -612,31 +601,33 @@ class InputAccumalator {
 function onBodyLoad() {
     loadWorld((world: World) => {
         getCanvas((canvas: HTMLCanvasElement) => {
-            canvas.height = world.viewHeight;
-            canvas.width = world.viewWidth;
+            loadSpriteMap((spriteMap: SpriteMap) => {
+                canvas.height = world.viewHeight;
+                canvas.width = world.viewWidth;
 
-            let context = canvas.getContext("2d");
+                let context = canvas.getContext("2d");
 
-            let ia = new InputAccumalator(canvas);
+                let ia = new InputAccumalator(canvas);
 
-            // Start update loop
-            let handle = setInterval(
-                () => {
-                    if(context === null) {
-                        clearInterval(handle);
-                        throw new Error("Could not load context for canvas");
-                    }
+                // Start update loop
+                let handle = setInterval(
+                    () => {
+                        if(context === null) {
+                            clearInterval(handle);
+                            throw new Error("Could not load context for canvas");
+                        }
 
-                    context.clearRect(0, 0, canvas.width, canvas.height);
+                        context.clearRect(0, 0, canvas.width, canvas.height);
 
-                    // Updated animated sprites
-                    world.update(ia);
-                    ia.reset();
+                        // Updated animated sprites
+                        world.update(spriteMap, ia);
+                        ia.reset();
 
-                    world.render(context);
-                },
-                250 // milliseconds
-            );
+                        world.render(spriteMap, context);
+                    },
+                    250 // milliseconds
+                );
+            });
         });
     });
 }

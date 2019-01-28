@@ -15,8 +15,10 @@ function getImageDirURL(): string {
  * Loads the world configuration file
  * @param onLoaded Called once the configuration data has been loaded
  */
-function loadWorldConfig(onLoaded: (config: WorldConfig) => void): void {
-    loadJSON(getConfigDirURL() + "world-config.json", onLoaded);
+function loadWorld(callback: (world: World) => void): void {
+    loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
+        callback(new MyWorld(config));
+    });
 }
 
 /**
@@ -54,5 +56,16 @@ class Soldier extends Actor {
         }
 
         this.move(dx, dy);
+    }
+}
+
+class MyWorld extends World {
+    public onUpdate(inputAccumalator: InputAccumalator): void {
+        if(inputAccumalator.mouseDown && inputAccumalator.mouseDownPoint) {
+            this.addTarget(new Point(
+                inputAccumalator.mouseDownPoint.x,
+                inputAccumalator.mouseDownPoint.y
+            ));
+        }
     }
 }
