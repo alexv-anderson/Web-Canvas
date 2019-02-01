@@ -7,7 +7,7 @@
             "height": 128,
             "numberOfFrames": 4,
             "isHorizontal": false,
-            "loop": true
+            "fps": 4
         },
         {
             "fileName": "moving-water-right.png",
@@ -16,7 +16,7 @@
             "height": 32,
             "numberOfFrames": 4,
             "isHorizontal": true,
-            "loop": true
+            "fps": 4
         },
         {
             "fileName": "grass.png",
@@ -31,7 +31,7 @@
             "height": 32,
             "numberOfFrames": 2,
             "isHorizontal": true,
-            "loop": true
+            "fps": 4
         },
         {
             "fileName": "target.png",

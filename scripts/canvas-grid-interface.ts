@@ -8,7 +8,7 @@ type SpriteInitInfo = {
     height: number,
     numberOfFrames: number,
     isHorizontal?: boolean,
-    loop?: boolean
+    fps?: number
 }
 
 type LayerConfig = { [key in string]: Array<Array<number>> };

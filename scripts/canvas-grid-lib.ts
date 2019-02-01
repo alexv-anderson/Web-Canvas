@@ -20,13 +20,13 @@ class Sprite {
      * @param image The image which holds the sprite
      * @param numberOfFrames The number of frames in the image
      * @param horizontal Indicates if the frames are in a single row
-     * @param loop Indicates if the frames should loop
+     * @param framesPerSecond Indicates the number of frames to show in a second of time
      */
     constructor(
         image: HTMLImageElement,
         numberOfFrames: number,
         horizontal: boolean,
-        loop: boolean
+        framesPerSecond: number
     )
     /**
      * Initializes the sprite.
@@ -36,21 +36,21 @@ class Sprite {
      * @param image The image which holds the sprite
      * @param numberOfFrames The number of frames in the image
      * @param horizontal Indicates if the frames are in a single row
-     * @param loop Indicates if the frames should loop
+     * @param framesPerSecond Indicates the number of frames to show in a second of time
      */
     constructor(
         image: HTMLImageElement,
         numberOfFrames?: number,
         horizontal?: boolean,
-        loop?: boolean
+        framesPerSecond?: number
     ) {
         this.frameIndex = 0;
-        this.updatesSinceLastFrame = 0;
-        this.numberOfUpdatesPerFrame = 0;
 
         this.numberOfFrames = numberOfFrames || 1;
+        this.lastUpdateTime = 0;
+        this.lastFrameChangeTime = 0;
+        this.framesPerSecond = framesPerSecond;
         this.horizontal = horizontal !== undefined ? horizontal : true;
-        this.loop = loop !== undefined ? loop : false;
 
         this.image = image;
     }
@@ -87,15 +87,17 @@ class Sprite {
 
     /**
      * Updates the frame which is shown for the sprite.
+     * @param dt Number of milliseconds which have passed since the last time this method was called
      */
-    public update(): void {
-        this.updatesSinceLastFrame += 1;
-        if(this.updatesSinceLastFrame > this.numberOfUpdatesPerFrame) {
-            this.updatesSinceLastFrame = 0;
-            if(this.frameIndex < this.numberOfFrames - 1) {
-                this.frameIndex += 1;
-            } else if(this.loop) {
-                this.frameIndex = 0;
+    public update(dt: number): void {
+        if(this.framesPerSecond) {
+            let msPerFrame = 1000 / this.framesPerSecond;
+
+            this.lastUpdateTime += dt;
+
+            if(this.lastUpdateTime - this.lastFrameChangeTime > msPerFrame) {
+                this.frameIndex = (this.frameIndex + 1) % this.numberOfFrames;
+                this.lastFrameChangeTime = this.lastUpdateTime;
             }
         }
     }
@@ -124,13 +126,12 @@ class Sprite {
     private image: HTMLImageElement;
 
     private numberOfFrames: number;
+    private lastUpdateTime: number = 0;
+    private lastFrameChangeTime: number;
+    private framesPerSecond?: number;
     private frameIndex: number;
-    private numberOfUpdatesPerFrame: number;
-
-    private updatesSinceLastFrame: number;
 
     private horizontal: boolean;
-    private loop: boolean;
 }
 
 /**
@@ -153,9 +154,10 @@ class SpriteMap {
 
     /**
      * Updates the frame for all of the sprites in the map.
+     * @param dt Number of milliseconds which have passed since the last time this method was called
      */
-    public updateAllSprites(): void {
-        this.map.forEach((sprite: Sprite) => sprite.update());
+    public updateAllSprites(dt: number): void {
+        this.map.forEach((sprite: Sprite) => sprite.update(dt));
     }
 
     /**
@@ -301,14 +303,14 @@ function loadSpriteMap(onLoaded: (map: SpriteMap) => void): void {
 
                 // Add the sprite to the map
 
-                if(sii.isHorizontal !== undefined && sii.loop !== undefined) {
+                if(sii.isHorizontal !== undefined && sii.fps !== undefined) {
                     map.addSprite(
                         sii.mapKey,
                         new Sprite(
                             image,
                             sii.numberOfFrames,
                             sii.isHorizontal,
-                            sii.loop
+                            sii.fps
                         )
                     );
                 } else {
@@ -448,13 +450,14 @@ abstract class World {
 
     /**
      * Updates everything in the world
+     * @param dt Number of milliseconds which have passed since the last time this method was called
      * @param spriteMap A map from keys to sprites
      * @param inputAccumalator Input collected from the user
      */
-    public update(spriteMap: SpriteMap, inputAccumalator: InputAccumalator) {
+    public update(dt: number, spriteMap: SpriteMap, inputAccumalator: InputAccumalator) {
         this.onUpdate(inputAccumalator);
 
-        spriteMap.updateAllSprites();
+        spriteMap.updateAllSprites(dt);
 
         this.actors.forEach((actor: Actor) => { actor.update(inputAccumalator); })
     }
@@ -609,24 +612,52 @@ function onBodyLoad() {
 
                 let ia = new InputAccumalator(canvas);
 
+                let lastNow: number;
+
+                function update() {
+                    if(context === null) {
+                        throw new Error("Could not load context for canvas");
+                    }
+
+                    let dt = 0;
+                    if(lastNow === undefined) {
+                        lastNow = performance.now();
+                    } else {
+                        let now = performance.now();
+                        dt = now - lastNow;
+                        lastNow = now;
+                    }
+
+                    context.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Updated animated sprites
+                    world.update(dt, spriteMap, ia);
+                    ia.reset();
+
+                    world.render(spriteMap, context);
+
+                    window.requestAnimationFrame(update);
+                }
+                update();
+
                 // Start update loop
-                let handle = setInterval(
-                    () => {
-                        if(context === null) {
-                            clearInterval(handle);
-                            throw new Error("Could not load context for canvas");
-                        }
+                // let handle = setInterval(
+                //     () => {
+                //         if(context === null) {
+                //             clearInterval(handle);
+                //             throw new Error("Could not load context for canvas");
+                //         }
 
-                        context.clearRect(0, 0, canvas.width, canvas.height);
+                //         context.clearRect(0, 0, canvas.width, canvas.height);
 
-                        // Updated animated sprites
-                        world.update(spriteMap, ia);
-                        ia.reset();
+                //         // Updated animated sprites
+                //         world.update(spriteMap, ia);
+                //         ia.reset();
 
-                        world.render(spriteMap, context);
-                    },
-                    250 // milliseconds
-                );
+                //         world.render(spriteMap, context);
+                //     },
+                //     250 // milliseconds
+                // );
             });
         });
     });
