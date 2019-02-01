@@ -343,6 +343,10 @@ class Point {
         this._y = y;
     }
 
+    public plus(dx: number, dy: number): Point {
+        return new Point(this.x + dx, this.y + dy);
+    }
+
     /**
      * The point's x-coordinate
      */
@@ -352,9 +356,9 @@ class Point {
     /**
      * The point's x-coordinate
      */
-    public set x(x: number) {
-        this._x = x;
-    }
+    // public set x(x: number) {
+    //     this._x = x;
+    // }
     /**
      * The point's y-coordinate
      */
@@ -364,9 +368,9 @@ class Point {
     /**
      * The point's y-coordinate
      */
-    public set y(y: number) {
-        this._y = y;
-    }
+    // public set y(y: number) {
+    //     this._y = y;
+    // }
 
     private _x: number;
     private _y: number;
@@ -415,8 +419,7 @@ abstract class Actor {
     }
 
     protected move(dx: number, dy: number): void {
-        this.location.x += dx;
-        this.location.y += dy;
+        this.location = this.location.plus(dx, dy);
     }
 
     private location: Point;
@@ -488,7 +491,7 @@ abstract class World {
             context.strokeStyle = line.style || context.strokeStyle;
             context.stroke();
             context.restore();
-        })
+        });
 
         this.actors.forEach((actor: Actor) => { actor.render(spriteMap, context); })
     }
