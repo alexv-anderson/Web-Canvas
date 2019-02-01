@@ -62,10 +62,20 @@ class Soldier extends Actor {
 class MyWorld extends World {
     public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
         if(inputAccumalator.mouseDown && inputAccumalator.mouseDownPoint) {
-            this.addTarget(new Point(
-                inputAccumalator.mouseDownPoint.x,
-                inputAccumalator.mouseDownPoint.y
-            ));
+            if(this.lastClickPoint) {
+                this.addLine(
+                    this.lastClickPoint.x,
+                    this.lastClickPoint.y,
+                    inputAccumalator.mouseDownPoint.x,
+                    inputAccumalator.mouseDownPoint.y,
+                    "red",
+                    2
+                )
+            }
+
+            this.lastClickPoint = inputAccumalator.mouseDownPoint;
         }
     }
+
+    private lastClickPoint: Point;
 }

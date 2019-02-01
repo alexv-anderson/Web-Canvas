@@ -473,22 +473,43 @@ abstract class World {
         // Draw sprites
         this.layout.render(spriteMap, context);
 
-        this.adhocSprite.forEach((as: { key: string, center: Point}) => { spriteMap.render(
+        this.adhocSprites.forEach((as: { key: string, center: Point}) => { spriteMap.render(
             context,
             as.key,
             as.center
         )});
 
+        this.lines.forEach(line => {
+            context.save();
+            context.beginPath();
+            context.moveTo(line.x1, line.y1);
+            context.lineTo(line.x2, line.y2);
+            context.lineWidth = line.width || context.lineWidth;
+            context.strokeStyle = line.style || context.strokeStyle;
+            context.stroke();
+            context.restore();
+        })
+
         this.actors.forEach((actor: Actor) => { actor.render(spriteMap, context); })
     }
 
-    public addTarget(point: Point): void {
-        this.addAdHocSprite("target", point);
-    }
     public addAdHocSprite(key: string, center: Point): void {
-        this.adhocSprite.push({
+        this.adhocSprites.push({
             key: key,
             center: center
+        });
+    }
+
+    protected addLine(x1: number, y1: number, x2: number, y2: number): void
+    protected addLine(x1: number, y1: number, x2: number, y2: number, style: string, width: number): void
+    protected addLine(x1: number, y1: number, x2: number, y2: number, style?: string, width?: number): void {
+        this.lines.push({
+            x1: x1,
+            y1: y1,
+            x2: x2,
+            y2: y2,
+            style: style,
+            width: width
         });
     }
 
@@ -499,14 +520,14 @@ abstract class World {
         return this._viewWidth;
     }
 
-    private adhocSprite: Array<{ key: string, center: Point}> = [];
+    private adhocSprites: Array<{ key: string, center: Point}> = [];
+    private lines: Array<{x1: number, y1: number, x2: number, y2: number, style?: string, width?: number}> = [];
 
     private _viewHeight: number;
     private _viewWidth: number;
 
     private actors: Array<Actor> = [];
     private layout: LayeredLayout = new LayeredLayout();
-    //private spriteMap: SpriteMap;
 }
 
 /**
