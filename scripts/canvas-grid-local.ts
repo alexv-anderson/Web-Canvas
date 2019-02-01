@@ -60,7 +60,7 @@ class Soldier extends Actor {
 }
 
 class MyWorld extends World {
-    public onUpdate(inputAccumalator: InputAccumalator): void {
+    public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
         if(inputAccumalator.mouseDown && inputAccumalator.mouseDownPoint) {
             this.addTarget(new Point(
                 inputAccumalator.mouseDownPoint.x,

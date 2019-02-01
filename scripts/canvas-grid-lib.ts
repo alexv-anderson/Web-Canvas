@@ -126,7 +126,7 @@ class Sprite {
     private image: HTMLImageElement;
 
     private numberOfFrames: number;
-    private lastUpdateTime: number = 0;
+    private lastUpdateTime: number;
     private lastFrameChangeTime: number;
     private framesPerSecond?: number;
     private frameIndex: number;
@@ -455,14 +455,14 @@ abstract class World {
      * @param inputAccumalator Input collected from the user
      */
     public update(dt: number, spriteMap: SpriteMap, inputAccumalator: InputAccumalator) {
-        this.onUpdate(inputAccumalator);
+        this.onUpdate(dt, inputAccumalator);
 
         spriteMap.updateAllSprites(dt);
 
         this.actors.forEach((actor: Actor) => { actor.update(inputAccumalator); })
     }
 
-    public abstract onUpdate(inputAccumalator: InputAccumalator): void;
+    public abstract onUpdate(dt: number, inputAccumalator: InputAccumalator): void;
 
     /**
      * Renders the world on the given canvas
