@@ -191,26 +191,27 @@ class SpriteMap {
 /**
  * Represents a layer of sprites which for the background/floor
  */
-class Layer {
+class SpriteLayer extends Layer {
     /**
      * Initializes the layer
      * @param grid The configuration for the layer
      */
-    constructor(grid: LayerConfig) {
+    constructor(grid: LayerConfig, spriteMap: SpriteMap) {
+        super();
         this._grid = grid;
+        this._spriteMap = spriteMap;
     }
 
     /**
      * Renders the layer on the supplied canvas using the given sprite map
-     * @param spriteMap A map from keys to sprites
      * @param context The rendering context of the canvas on which the layer should be rendered
      */
-    public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
+    public render(context: CanvasRenderingContext2D): void {
         for(let key in this._grid) {
             let pairs = this._grid[key];
             for(let pairIndex = 0; pairIndex < pairs.length; pairIndex++) {
                 let pair = pairs[pairIndex];
-                spriteMap.render(
+                this._spriteMap.render(
                     context,
                     key,
                     new Point(
@@ -223,47 +224,7 @@ class Layer {
     }
 
     private _grid: LayerConfig;
-}
-
-/**
- * Represents a list of layers
- */
-class LayeredLayout {
-    /**
-     * Adds a layer on top of the existing layers
-     * @param layer The layer to be placed at the top of the list
-     */
-    public addLayer(layer: Layer): void {
-        this.layers.push(layer);
-    }
-
-    /**
-     * Supplies the layer at the given index.
-     * 
-     * Note: the lowest layer has an index of 0
-     * @param index The index of the desired layer
-     */
-    public getLayer(index: number): Layer {
-        return this.layers[index];
-    }
-
-    /**
-     * The number of layers in this layout
-     */
-    public get depth(): number {
-        return this.layers.length;
-    }
-
-    /**
-     * Renders the layers of the layout in order
-     * @param spriteMap A mapping from keys to sprites
-     * @param context The rendering context of the canvas on which the layout should be rendered
-     */
-    public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
-        this.layers.forEach((layer: Layer) => { layer.render(spriteMap, context); });
-    }
-
-    private layers: Array<Layer> = [];
+    private _spriteMap: SpriteMap;
 }
 
 /**
@@ -384,12 +345,12 @@ abstract class Actor {
 /**
  * Reperesents everything on the canvas
  */
-abstract class World {
+abstract class SpriteWorld {
     /**
      * Initializes the world
      * @param config Configuration data for the world
      */
-    constructor(config: WorldConfig) {
+    constructor(config: WorldConfig, spriteMap: SpriteMap) {
         if(config.actorConfigs) {
             for(let name in config.actorConfigs) {
                 for(let actorConfig of config.actorConfigs[name])
@@ -399,10 +360,12 @@ abstract class World {
             }
         }
 
-        config.layers.forEach((lc: LayerConfig) => { this.layout.addLayer(new Layer(lc)); });
+        config.layers.forEach((lc: LayerConfig) => { this.layout.addLayer(new SpriteLayer(lc, spriteMap)); });
 
         this._viewHeight = config.view.height;
         this._viewWidth = config.view.width;
+
+        this.spriteMap = spriteMap;
     }
 
     /**
@@ -428,7 +391,7 @@ abstract class World {
      */
     public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
         // Draw sprites
-        this.layout.render(spriteMap, context);
+        this.layout.render(context);
 
         this.adhocSprites.forEach((as: { key: string, center: Point}) => { spriteMap.render(
             context,
@@ -482,6 +445,8 @@ abstract class World {
 
     private _viewHeight: number;
     private _viewWidth: number;
+
+    private spriteMap: SpriteMap;
 
     private actors: Array<Actor> = [];
     private layout: LayeredLayout = new LayeredLayout();
