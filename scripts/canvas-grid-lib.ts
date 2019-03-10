@@ -198,8 +198,8 @@ class SpriteLayer extends Layer {
      */
     constructor(grid: LayerConfig, spriteMap: SpriteMap) {
         super();
-        this._grid = grid;
-        this._spriteMap = spriteMap;
+        this.grid = grid;
+        this.spriteMap = spriteMap;
     }
 
     /**
@@ -207,11 +207,11 @@ class SpriteLayer extends Layer {
      * @param context The rendering context of the canvas on which the layer should be rendered
      */
     public render(context: CanvasRenderingContext2D): void {
-        for(let key in this._grid) {
-            let pairs = this._grid[key];
+        for(let key in this.grid) {
+            let pairs = this.grid[key];
             for(let pairIndex = 0; pairIndex < pairs.length; pairIndex++) {
                 let pair = pairs[pairIndex];
-                this._spriteMap.render(
+                this.spriteMap.render(
                     context,
                     key,
                     new Point(
@@ -223,8 +223,8 @@ class SpriteLayer extends Layer {
         }
     }
 
-    private _grid: LayerConfig;
-    private _spriteMap: SpriteMap;
+    private grid: LayerConfig;
+    private spriteMap: SpriteMap;
 }
 
 /**
@@ -345,12 +345,16 @@ abstract class Actor {
 /**
  * Reperesents everything on the canvas
  */
-abstract class SpriteWorld {
+abstract class SpriteWorld extends World {
     /**
      * Initializes the world
+     * @param canvas The canvas on which the world will be drawn
      * @param config Configuration data for the world
+     * @param spriteMap Data structure for the sprites in the world
      */
-    constructor(config: WorldConfig, spriteMap: SpriteMap) {
+    constructor(canvas: HTMLCanvasElement, config: WorldConfig, spriteMap: SpriteMap) {
+        super(canvas);
+
         if(config.actorConfigs) {
             for(let name in config.actorConfigs) {
                 for(let actorConfig of config.actorConfigs[name])
@@ -360,59 +364,37 @@ abstract class SpriteWorld {
             }
         }
 
-        config.layers.forEach((lc: LayerConfig) => { this.layout.addLayer(new SpriteLayer(lc, spriteMap)); });
-
-        this._viewHeight = config.view.height;
-        this._viewWidth = config.view.width;
+        config.layers.forEach((lc: LayerConfig) => { this.addLayer(new SpriteLayer(lc, spriteMap)); });
 
         this.spriteMap = spriteMap;
     }
 
-    /**
-     * Updates everything in the world
-     * @param dt Number of milliseconds which have passed since the last time this method was called
-     * @param spriteMap A map from keys to sprites
-     * @param inputAccumalator Input collected from the user
-     */
-    public update(dt: number, spriteMap: SpriteMap, inputAccumalator: InputAccumalator) {
-        this.onUpdate(dt, inputAccumalator);
-
-        spriteMap.updateAllSprites(dt);
+    public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
+        this.spriteMap.updateAllSprites(dt);
 
         this.actors.forEach((actor: Actor) => { actor.update(inputAccumalator); })
     }
 
-    public abstract onUpdate(dt: number, inputAccumalator: InputAccumalator): void;
-
     /**
      * Renders the world on the given canvas
-     * @param spriteMap A map from keys to sprites
-     * @param context The rendering context of the canvas on which the world should be rendered
      */
-    public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
-        // Draw sprites
-        this.layout.render(context);
+    public render(): void {
+        super.render();
 
-        this.adhocSprites.forEach((as: { key: string, center: Point}) => { spriteMap.render(
-            context,
+        this.adhocSprites.forEach((as: { key: string, center: Point}) => { this.spriteMap.render(
+            this.drawingContext,
             as.key,
             as.center
         )});
 
-        this.lines.forEach(line => {
-            context.save();
-            context.beginPath();
-            context.moveTo(line.x1, line.y1);
-            context.lineTo(line.x2, line.y2);
-            context.lineWidth = line.width || context.lineWidth;
-            context.strokeStyle = line.style || context.strokeStyle;
-            context.stroke();
-            context.restore();
-        });
-
-        this.actors.forEach((actor: Actor) => { actor.render(spriteMap, context); })
+        this.actors.forEach((actor: Actor) => { actor.render(this.spriteMap, this.drawingContext); });
     }
 
+    /**
+     * Adds a sprite on top of the world's layers
+     * @param key The key for the sprite in the SpriteMap
+     * @param center The center point of the sprite in the world
+     */
     public addAdHocSprite(key: string, center: Point): void {
         this.adhocSprites.push({
             key: key,
@@ -420,34 +402,9 @@ abstract class SpriteWorld {
         });
     }
 
-    protected addLine(x1: number, y1: number, x2: number, y2: number): void
-    protected addLine(x1: number, y1: number, x2: number, y2: number, style: string, width: number): void
-    protected addLine(x1: number, y1: number, x2: number, y2: number, style?: string, width?: number): void {
-        this.lines.push({
-            x1: x1,
-            y1: y1,
-            x2: x2,
-            y2: y2,
-            style: style,
-            width: width
-        });
-    }
-
-    public get viewHeight(): number {
-        return this._viewHeight;
-    }
-    public get viewWidth(): number {
-        return this._viewWidth;
-    }
-
     private adhocSprites: Array<{ key: string, center: Point}> = [];
-    private lines: Array<{x1: number, y1: number, x2: number, y2: number, style?: string, width?: number}> = [];
-
-    private _viewHeight: number;
-    private _viewWidth: number;
 
     private spriteMap: SpriteMap;
 
     private actors: Array<Actor> = [];
-    private layout: LayeredLayout = new LayeredLayout();
 }

@@ -178,12 +178,145 @@ class InputAccumalator {
 }
 
 /**
+ * Reperesents everything on the canvas
+ */
+abstract class World {
+    /**
+     * Initializes the world
+     * @param canvas The canvas on which the world should be drawn
+     */
+    constructor(canvas: HTMLCanvasElement) {
+        this.setCanvas(canvas);
+    }
+
+    /**
+     * Updates everything in the world
+     * @param dt Number of milliseconds which have passed since the last time this method was called
+     * @param inputAccumalator Input collected from the user
+     */
+    public update(dt: number, inputAccumalator: InputAccumalator) {
+        this.onUpdate(dt, inputAccumalator);
+    }
+
+    /**
+     * Called when the world should be updated
+     * @param dt Number of milliseconds which have passed since the last time this method was called
+     * @param inputAccumalator Input collected from the user
+     */
+    public abstract onUpdate(dt: number, inputAccumalator: InputAccumalator): void;
+
+    /**
+     * Renders the world
+     * @param spriteMap A map from keys to sprites
+     * @param context The rendering context of the canvas on which the world should be rendered
+     */
+    public render(): void {
+        // Draw sprites
+        this.layout.render(this.drawingContext);
+
+        this.lines.forEach(line => {
+            this.drawingContext.save();
+            this.drawingContext.beginPath();
+            this.drawingContext.moveTo(line.x1, line.y1);
+            this.drawingContext.lineTo(line.x2, line.y2);
+            this.drawingContext.lineWidth = line.width || this.drawingContext.lineWidth;
+            this.drawingContext.strokeStyle = line.style || this.drawingContext.strokeStyle;
+            this.drawingContext.stroke();
+            this.drawingContext.restore();
+        });
+    }
+
+    /**
+     * Adds a line on top of the world
+     * @param x1 The x-coordinate of the first point
+     * @param y1 The y-coordinate of the first point
+     * @param x2 The x-coordinate of the second point
+     * @param y2 The y-coordinate of the second point
+     */
+    protected addLine(x1: number, y1: number, x2: number, y2: number): void
+    /**
+     * Adds a line on top of the world
+     * @param x1 The x-coordinate of the first point
+     * @param y1 The y-coordinate of the first point
+     * @param x2 The x-coordinate of the second point
+     * @param y2 The y-coordinate of the second point
+     * @param style The style of the line
+     * @param width The width of the line
+     */
+    protected addLine(x1: number, y1: number, x2: number, y2: number, style: string, width: number): void
+    /**
+     * Adds a line on top of the world
+     * @param x1 The x-coordinate of the first point
+     * @param y1 The y-coordinate of the first point
+     * @param x2 The x-coordinate of the second point
+     * @param y2 The y-coordinate of the second point
+     * @param style The style of the line
+     * @param width The width of the line
+     */
+    protected addLine(x1: number, y1: number, x2: number, y2: number, style?: string, width?: number): void {
+        this.lines.push({
+            x1: x1,
+            y1: y1,
+            x2: x2,
+            y2: y2,
+            style: style,
+            width: width
+        });
+    }
+
+    /**
+     * The height of the world's canvas
+     */
+    public get viewHeight(): number {
+        return this._viewHeight;
+    }
+    /**
+     * The width of the world's canvas
+     */
+    public get viewWidth(): number {
+        return this._viewWidth;
+    }
+    /**
+     * The drawing context of the world's canvas
+     */
+    protected get drawingContext(): CanvasRenderingContext2D {
+        return this.context;
+    }
+
+    /**
+     * Adds a layer to the top of the world's stack of layers
+     * @param layer The layer to be added
+     */
+    protected addLayer(layer: Layer) {
+        this.layout.addLayer(layer);
+    }
+
+    private setCanvas(canvas: HTMLCanvasElement): void {
+        let context = canvas.getContext("2d");
+        if(context == null)
+            throw Error("Could not initialize canvas");
+
+        this.context = context;
+        this._viewHeight = canvas.height;
+        this._viewWidth = canvas.width;
+    }
+
+    private lines: Array<{x1: number, y1: number, x2: number, y2: number, style?: string, width?: number}> = [];
+
+    private _viewHeight: number;
+    private _viewWidth: number;
+
+    private context: CanvasRenderingContext2D;
+    private layout: LayeredLayout = new LayeredLayout();
+}
+
+/**
  * Begins loading everything once the body of the document has loaded
  */
 function onBodyLoad() {
-    loadSpriteMap((spriteMap: SpriteMap) => {
-        loadWorld(spriteMap, (world: SpriteWorld) => {
-            getCanvas((canvas: HTMLCanvasElement) => {
+    getCanvas((canvas: HTMLCanvasElement) => {
+        loadSpriteMap((spriteMap: SpriteMap) => {
+            loadWorld(canvas, spriteMap, (world: SpriteWorld) => {            
                 canvas.height = world.viewHeight;
                 canvas.width = world.viewWidth;
 
@@ -210,10 +343,10 @@ function onBodyLoad() {
                     context.clearRect(0, 0, canvas.width, canvas.height);
 
                     // Updated animated sprites
-                    world.update(dt, spriteMap, ia);
+                    world.update(dt, ia);
                     ia.reset();
 
-                    world.render(spriteMap, context);
+                    world.render();
 
                     window.requestAnimationFrame(update);
                 }

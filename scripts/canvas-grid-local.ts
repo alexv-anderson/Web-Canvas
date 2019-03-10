@@ -15,9 +15,9 @@ function getImageDirURL(): string {
  * Loads the world configuration file
  * @param onLoaded Called once the configuration data has been loaded
  */
-function loadWorld(spritMap: SpriteMap, callback: (world: SpriteWorld) => void): void {
+function loadWorld(canvas: HTMLCanvasElement,spritMap: SpriteMap, callback: (world: SpriteWorld) => void): void {
     loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
-        callback(new MyWorld(config, spritMap));
+        callback(new MyWorld(canvas, config, spritMap));
     });
 }
 
@@ -61,6 +61,8 @@ class Soldier extends Actor {
 
 class MyWorld extends SpriteWorld {
     public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
+        super.onUpdate(dt, inputAccumalator);
+        
         if(inputAccumalator.mouseDown && inputAccumalator.mouseDownPoint) {
             if(this.lastClickPoint) {
                 this.addLine(
