@@ -1,21 +1,44 @@
 
+/**
+ * Options which modify how a sprite in a sprite sheet behaves
+ */
+interface SpriteSheetSpriteOptions extends SpriteOptions {
+    key: string
+}
+
+/**
+ * Represets a sprite sheet
+ */
+class SpriteSheet {
+    /**
+     * Initiallizes all of the sprites in the sprite sheet
+     * @param image The image element which contains the sprite sheet
+     * @param sheetConfig A list with an entry for each sprite in the sprite sheet
+     */
+    constructor(image: HTMLImageElement, sheetConfig: Array<SpriteSheetSpriteOptions>) {
+        sheetConfig.forEach(ssso => this.sprites[ssso.key] = new Sprite(image, ssso));
+    }
+
+    /**
+     * Retrieves a sprite using its unique key
+     * @param key The key which uniquely identifies the sprite in this sprite sheet
+     */
+    public getSprite(key: string): Sprite {
+        return this.sprites[key];
+    }
+
+    private sprites: {[key: string]: Sprite}
+}
+
+/**
+ * Options which modify how a sprite behaves
+ */
 interface SpriteOptions {
     numberOfFrames?: number,
     isHorizontal?: boolean,
     framesPerSecond?: number,
     imageBaseX?: number,
     imageBaseY?: number
-}
-
-interface SpriteSheetSpriteOptions extends SpriteOptions {
-    key: string
-}
-
-class SpriteSheet {
-    constructor(image: HTMLImageElement, sheetConfig: Array<SpriteSheetSpriteOptions>) {
-        sheetConfig.forEach(ssso => this.sprites[ssso.key] = new Sprite(image, ssso));
-    }
-    private sprites: {[key: string]: Sprite}
 }
 
 /**
