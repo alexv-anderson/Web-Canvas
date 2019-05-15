@@ -1,3 +1,4 @@
+/// <reference path="./sprite.ts" />
 /// <reference path="./general-lib.ts" />
 /// <reference path="./canvas-lib.ts" />
 /// <reference path="./canvas-grid-interface.ts" />
@@ -6,55 +7,7 @@
 /**
  * Represents a single sprite which may be composed of one or more frames.
  */
-class Sprite {
-    /**
-     * Initializes the sprite.
-     * 
-     * @param image The image which holds the sprite
-     */
-    constructor(image: HTMLImageElement)
-    /**
-     * Initializes the sprite.
-     * 
-     * A sprite is a image file which contains a single column or row of one or more frames.
-     * 
-     * @param image The image which holds the sprite
-     * @param numberOfFrames The number of frames in the image
-     * @param horizontal Indicates if the frames are in a single row
-     * @param framesPerSecond Indicates the number of frames to show in a second of time
-     */
-    constructor(
-        image: HTMLImageElement,
-        numberOfFrames: number,
-        horizontal: boolean,
-        framesPerSecond: number
-    )
-    /**
-     * Initializes the sprite.
-     * 
-     * A sprite is a image file which contains a single column or row of one or more frames.
-     * 
-     * @param image The image which holds the sprite
-     * @param numberOfFrames The number of frames in the image
-     * @param horizontal Indicates if the frames are in a single row
-     * @param framesPerSecond Indicates the number of frames to show in a second of time
-     */
-    constructor(
-        image: HTMLImageElement,
-        numberOfFrames?: number,
-        horizontal?: boolean,
-        framesPerSecond?: number
-    ) {
-        this.frameIndex = 0;
-
-        this.numberOfFrames = numberOfFrames || 1;
-        this.lastUpdateTime = 0;
-        this.lastFrameChangeTime = 0;
-        this.framesPerSecond = framesPerSecond;
-        this.horizontal = horizontal !== undefined ? horizontal : true;
-
-        this.image = image;
-    }
+class PointSprite extends Sprite {
 
     /**
      * Draws the current frame of the sprite on the canvas at the given coordinates.
@@ -62,77 +15,13 @@ class Sprite {
      * @param context The canvas' 2D rendering context
      * @param center The center point of the sprite's frame on the canvas
      */
-    public render(context: CanvasRenderingContext2D, center: Point): void {
-        let srcX: number = 0;
-        let srcY: number = 0;
-
-        // Toggle controls whether frames progress to the right or left
-        if(this.horizontal) {
-            srcX = this.frameIndex * this.frameWidth;
-        } else {
-            srcY = this.frameIndex * this.frameHeight;
-        }
-
-        context.drawImage(
-            this.image,
-            srcX,
-            srcY,
-            this.frameWidth,
-            this.frameHeight,
+    public renderAtCenterPoint(context: CanvasRenderingContext2D, center: Point): void {
+        super.render(
+            context,
             center.x - (this.frameWidth / 2),
-            center.y - (this.frameHeight / 2),
-            this.frameWidth,
-            this.frameHeight
+            center.y - (this.frameHeight / 2)
         );
     }
-
-    /**
-     * Updates the frame which is shown for the sprite.
-     * @param dt Number of milliseconds which have passed since the last time this method was called
-     */
-    public update(dt: number): void {
-        if(this.framesPerSecond) {
-            let msPerFrame = 1000 / this.framesPerSecond;
-
-            this.lastUpdateTime += dt;
-
-            if(this.lastUpdateTime - this.lastFrameChangeTime > msPerFrame) {
-                this.frameIndex = (this.frameIndex + 1) % this.numberOfFrames;
-                this.lastFrameChangeTime = this.lastUpdateTime;
-            }
-        }
-    }
-
-    /**
-     * The width of the sprite's frame
-     */
-    public get frameWidth(): number {
-        if(this.horizontal) {
-            return this.image.width / this.numberOfFrames;
-        } else {
-            return this.image.width;
-        }
-    }
-    /**
-     * The height of the sprite's frame
-     */
-    public get frameHeight(): number {
-        if(this.horizontal) {
-            return this.image.height;
-        } else {
-            return this.image.height / this.numberOfFrames;
-        }
-    }
-
-    private image: HTMLImageElement;
-
-    private numberOfFrames: number;
-    private lastUpdateTime: number;
-    private lastFrameChangeTime: number;
-    private framesPerSecond?: number;
-    private frameIndex: number;
-
-    private horizontal: boolean;
 }
 
 /**
@@ -140,7 +29,7 @@ class Sprite {
  */
 class SpriteMap {
     constructor() {
-        this.map = new Map<string, Sprite>();
+        this.map = new Map<string, PointSprite>();
     }
 
     /**
@@ -149,7 +38,7 @@ class SpriteMap {
      * @param key The key to be used for the given sprite
      * @param sprite The sprte to be associated with the given key
      */
-    public addSprite(key: string, sprite: Sprite): void {
+    public addSprite(key: string, sprite: PointSprite): void {
         this.map.set(key, sprite);
     }
 
@@ -158,7 +47,7 @@ class SpriteMap {
      * @param dt Number of milliseconds which have passed since the last time this method was called
      */
     public updateAllSprites(dt: number): void {
-        this.map.forEach((sprite: Sprite) => sprite.update(dt));
+        this.map.forEach((sprite: PointSprite) => sprite.update(dt));
     }
 
     /**
@@ -169,14 +58,14 @@ class SpriteMap {
      * @param center The center point of the sprite's frame on the canvas
      */
     public render(context: CanvasRenderingContext2D, key: string, center: Point): void {
-        this.getSprite(key).render(context, center);
+        this.getSprite(key).renderAtCenterPoint(context, center);
     }
 
     /**
      * Supplies the sprite associated with the given key
      * @param key The key for the desired sprite
      */
-    public getSprite(key: string): Sprite {
+    public getSprite(key: string): PointSprite {
         let sprite = this.map.get(key);
         if(sprite === undefined) {
             throw new ReferenceError("No sprite for key: " + key);
@@ -185,7 +74,7 @@ class SpriteMap {
         }
     }
 
-    private map: Map<string, Sprite>;
+    private map: Map<string, PointSprite>;
 }
 
 /**
@@ -268,17 +157,19 @@ function loadSpriteMap(onLoaded: (map: SpriteMap) => void): void {
                 if(sii.isHorizontal !== undefined && sii.fps !== undefined) {
                     map.addSprite(
                         sii.mapKey,
-                        new Sprite(
+                        new PointSprite(
                             image,
-                            sii.numberOfFrames,
-                            sii.isHorizontal,
-                            sii.fps
+                            {
+                                numberOfFrames: sii.numberOfFrames,
+                                isHorizontal: sii.isHorizontal,
+                                framesPerSecond: sii.fps
+                            }
                         )
                     );
                 } else {
                     map.addSprite(
                         sii.mapKey,
-                        new Sprite(
+                        new PointSprite(
                             image
                         )
                     );
@@ -324,7 +215,7 @@ abstract class Actor {
      * @param context The rendering context of the canvas on which the actor should be rendered
      */
     public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
-        spriteMap.getSprite(this.spriteKeys[this.spriteIndex]).render(
+        spriteMap.getSprite(this.spriteKeys[this.spriteIndex]).renderAtCenterPoint(
             context,
             new Point(
                 this.location.x,
