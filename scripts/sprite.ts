@@ -7,6 +7,17 @@ interface SpriteOptions {
     imageBaseY?: number
 }
 
+interface SpriteSheetSpriteOptions extends SpriteOptions {
+    key: string
+}
+
+class SpriteSheet {
+    constructor(image: HTMLImageElement, sheetConfig: Array<SpriteSheetSpriteOptions>) {
+        sheetConfig.forEach(ssso => this.sprites[ssso.key] = new Sprite(image, ssso));
+    }
+    private sprites: {[key: string]: Sprite}
+}
+
 /**
  * Represents a single sprite which may be composed of one or more frames.
  */
