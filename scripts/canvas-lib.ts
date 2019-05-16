@@ -1,8 +1,12 @@
 
+import { loadSpriteMap } from "./canvas-grid-lib.js";
+import { SpriteMap, SpriteWorld } from "./canvas-grid-lib.js";
+import { getCanvas, loadWorld } from "./canvas-grid-local.js";
+
 /**
  * Represents a point in 2D Cartesian space
  */
-class Point {
+export class Point {
     /**
      * Initializes the point
      * @param x The point's x-coordinate
@@ -38,7 +42,7 @@ class Point {
 /**
  * Represents a layer of sprites which for the background/floor
  */
-class Layer {
+export class Layer {
     /**
      * Renders the layer on the supplied canvas
      * @param context The rendering context of the canvas on which the layer should be rendered
@@ -91,7 +95,7 @@ class LayeredLayout {
 /**
  * Collects input from the user
  */
-class InputAccumalator {
+export class InputAccumalator {
     /**
      * Initializes the accumalator
      * @param canvas The canvas from which click events should be collected
@@ -180,7 +184,7 @@ class InputAccumalator {
 /**
  * Reperesents everything on the canvas
  */
-abstract class World {
+export abstract class World {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world should be drawn
@@ -313,7 +317,7 @@ abstract class World {
 /**
  * Begins loading everything once the body of the document has loaded
  */
-function onBodyLoad() {
+window.onload = function onBodyLoad() {
     getCanvas((canvas: HTMLCanvasElement) => {
         loadSpriteMap((spriteMap: SpriteMap) => {
             loadWorld(canvas, spriteMap, (world: SpriteWorld) => {            

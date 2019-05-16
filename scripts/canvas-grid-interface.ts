@@ -11,20 +11,20 @@ type SpriteInitInfo = {
     fps?: number
 }
 
-type LayerConfig = { [key in string]: Array<Array<number>> };
+export type LayerConfig = { [key in string]: Array<Array<number>> };
 
-type WorldConfig = {
+export type ActorConfig = {
+    location: Array<number>,
+    isi: number,
+    sprites: Array<string>
+}
+
+export type WorldConfig = {
     view: { height: number, width: number },
     layers: Array<LayerConfig>,
     actorConfigs?: {
-        [key in string]: [
-            {
-                location: Array<number>,
-                isi: number,
-                sprites: Array<string>
-            }
-        ]
+        [key in string]: [ActorConfig]
     }
 }
 
-type SpriteConfig = { spriteImageInfo: Array<SpriteInitInfo> }
+export type SpriteConfig = { spriteImageInfo: Array<SpriteInitInfo> }

@@ -3,7 +3,7 @@
  * @param pngURL The URL of the PNG file
  * @param callback A function which will process the image element after it has been loaded
  */
-function loadPNG(pngURL: string, callback: (image: HTMLImageElement) => void) {
+export function loadPNG(pngURL: string, callback: (image: HTMLImageElement) => void) {
     // Based on example found at https://www.html5rocks.com/en/tutorials/file/xhr2/
     let xhr = new XMLHttpRequest();
     xhr.open("GET", pngURL, true);
@@ -27,7 +27,7 @@ function loadPNG(pngURL: string, callback: (image: HTMLImageElement) => void) {
  * @param jsonURL The URL of the JSON file
  * @param callback A function which will process the object after it has been loaded
  */
-function loadJSON(jsonURL: string, callback: (json: any) => void) {
+export function loadJSON(jsonURL: string, callback: (json: any) => void) {
     loadWebResource(jsonURL, "GET", "application/json", (text) => callback(JSON.parse(text)));
 }  
 

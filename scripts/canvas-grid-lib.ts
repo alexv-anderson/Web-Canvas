@@ -1,8 +1,8 @@
-/// <reference path="./sprite.ts" />
-/// <reference path="./general-lib.ts" />
-/// <reference path="./canvas-lib.ts" />
-/// <reference path="./canvas-grid-interface.ts" />
-/// <reference path="./canvas-grid-local.ts" />
+import { ActorConfig, LayerConfig, SpriteConfig, WorldConfig } from "./canvas-grid-interface.js";
+import { InputAccumalator, Layer, Point, World } from "./canvas-lib.js";
+import { loadPNG } from "./general-lib.js";
+import { Sprite } from "./sprite.js";
+import { getImageDirURL, loadSpriteConfig } from "./canvas-grid-local.js";
 
 /**
  * Represents a single sprite which may be composed of one or more frames.
@@ -27,7 +27,7 @@ class PointSprite extends Sprite {
 /**
  * Maps keys to a sprite
  */
-class SpriteMap {
+export class SpriteMap {
     constructor() {
         this.map = new Map<string, PointSprite>();
     }
@@ -80,7 +80,7 @@ class SpriteMap {
 /**
  * Represents a layer of sprites which for the background/floor
  */
-class SpriteLayer extends Layer {
+export class SpriteLayer extends Layer {
     /**
      * Initializes the layer
      * @param grid The configuration for the layer
@@ -120,7 +120,7 @@ class SpriteLayer extends Layer {
  * Build a SpriteMap for the background tiles
  * @param onLoaded Called once all of the sprites have been loaded from the server
  */
-function loadSpriteMap(onLoaded: (map: SpriteMap) => void): void {
+export function loadSpriteMap(onLoaded: (map: SpriteMap) => void): void {
 
     // Load the sprite configuration data
     loadSpriteConfig((config: SpriteConfig) => {
@@ -185,7 +185,7 @@ function loadSpriteMap(onLoaded: (map: SpriteMap) => void): void {
 /**
  * Represents something at can move due to user input on the canvas
  */
-abstract class Actor {
+export abstract class Actor {
 
     /**
      * Initializes the actor
@@ -236,7 +236,7 @@ abstract class Actor {
 /**
  * Reperesents everything on the canvas
  */
-abstract class SpriteWorld extends World {
+export abstract class SpriteWorld extends World {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world will be drawn
@@ -249,9 +249,7 @@ abstract class SpriteWorld extends World {
         if(config.actorConfigs) {
             for(let name in config.actorConfigs) {
                 for(let actorConfig of config.actorConfigs[name])
-                    this.actors.push(eval(
-                        "new " + name + "(new Point(" + actorConfig.location[0] + ", " + actorConfig.location[1] + "), " + actorConfig.isi + ", " + JSON.stringify(actorConfig.sprites) + ")"
-                    ));
+                    this.actors.push(this.constructActorAt(name, actorConfig));
             }
         }
 
@@ -259,6 +257,8 @@ abstract class SpriteWorld extends World {
 
         this.spriteMap = spriteMap;
     }
+
+    protected abstract constructActorAt(key: string, actorConfig: ActorConfig): Actor;
 
     public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
         this.spriteMap.updateAllSprites(dt);

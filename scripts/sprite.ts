@@ -44,7 +44,7 @@ interface SpriteOptions {
 /**
  * Represents a single sprite which may be composed of one or more frames.
  */
-class Sprite {
+export class Sprite {
     /**
      * Initializes the sprite.
      * 

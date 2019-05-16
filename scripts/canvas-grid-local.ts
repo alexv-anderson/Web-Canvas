@@ -1,4 +1,8 @@
-/// <reference path="local.ts" />
+import { getConfigDirURL, getHostURL } from "./local.js";
+import { loadJSON } from "./general-lib.js";
+import { SpriteConfig, WorldConfig, ActorConfig } from "./canvas-grid-interface.js";
+import { Actor, SpriteMap, SpriteWorld } from "./canvas-grid-lib.js";
+import { InputAccumalator, Point } from "./canvas-lib.js";
 
 /*
  * Only things which need to be implemented to create a new canvas world.
@@ -7,7 +11,7 @@
 /**
  * Supplies the URL for the host's image directory
  */
-function getImageDirURL(): string {
+export function getImageDirURL(): string {
     return getHostURL() + "images/";
 }
 
@@ -15,7 +19,7 @@ function getImageDirURL(): string {
  * Loads the world configuration file
  * @param onLoaded Called once the configuration data has been loaded
  */
-function loadWorld(canvas: HTMLCanvasElement,spritMap: SpriteMap, callback: (world: SpriteWorld) => void): void {
+export function loadWorld(canvas: HTMLCanvasElement,spritMap: SpriteMap, callback: (world: SpriteWorld) => void): void {
     loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
         callback(new MyWorld(canvas, config, spritMap));
     });
@@ -25,7 +29,7 @@ function loadWorld(canvas: HTMLCanvasElement,spritMap: SpriteMap, callback: (wor
  * Loads the sprite configuration file
  * @param onLoaded Called once the configuration data has been loaded
  */
-function loadSpriteConfig(onLoaded: (config: SpriteConfig) => void): void {
+export function loadSpriteConfig(onLoaded: (config: SpriteConfig) => void): void {
     loadJSON(getConfigDirURL() + "sprite-config.json", onLoaded);
 }
 
@@ -33,11 +37,11 @@ function loadSpriteConfig(onLoaded: (config: SpriteConfig) => void): void {
  * Gets the canvas element
  * @param callback Called once the canvas element has bee located
  */
-function getCanvas(callback: (canvas: HTMLCanvasElement) => void) {
+export function getCanvas(callback: (canvas: HTMLCanvasElement) => void) {
     callback(document.getElementById("theCanvas") as HTMLCanvasElement);
 }
 
-class Soldier extends Actor {
+export class Soldier extends Actor {
     public update(inputAccumalator: InputAccumalator): void {
         let dx: number = 0;
         let dy: number = 0;
@@ -60,6 +64,17 @@ class Soldier extends Actor {
 }
 
 class MyWorld extends SpriteWorld {
+    protected constructActorAt(key: string, actorConfig: ActorConfig): Actor | never {
+        if(key === "Soldier") {
+            return new Soldier(
+                new Point(actorConfig.location[0], actorConfig.location[1]),
+                actorConfig.isi,
+                actorConfig.sprites
+            )
+        }
+        throw new Error("No matching sprite for " + key);
+    }
+
     public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
         super.onUpdate(dt, inputAccumalator);
         
