@@ -112,6 +112,22 @@ export class SpriteLayer extends Layer {
         }
     }
 
+    public addSquareFor(spriteKey: string, row: number, column: number): void {
+        if(this.grid[spriteKey] === undefined) {
+            this.grid[spriteKey] = [];
+        }
+
+        this.grid[spriteKey].push([row, column]);
+    }
+
+    public getSquaresFor(spriteKey: string): Array<Array<number>> | undefined {
+        return this.grid[spriteKey];
+    }
+
+    public removeAllSpriteSquares(spriteKey: string): void {
+        delete this.grid[spriteKey];
+    }
+
     private grid: LayerConfig;
     private spriteMap: SpriteMap;
 }

@@ -295,6 +295,14 @@ export abstract class World {
         this.layout.addLayer(layer);
     }
 
+    protected get numberOfLayers(): number {
+        return this.layout.depth;
+    }
+
+    protected getLayerAtIndex(index: number): Layer {
+        return this.layout.getLayer(index);
+    }
+
     private setCanvas(canvas: HTMLCanvasElement): void {
         let context = canvas.getContext("2d");
         if(context == null)

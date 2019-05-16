@@ -1,7 +1,7 @@
 import { getConfigDirURL, getHostURL } from "./local.js";
 import { loadJSON } from "./general-lib.js";
 import { SpriteConfig, WorldConfig, ActorConfig } from "./canvas-grid-interface.js";
-import { Actor, SpriteMap, SpriteWorld } from "./canvas-grid-lib.js";
+import { Actor, SpriteMap, SpriteWorld, SpriteLayer } from "./canvas-grid-lib.js";
 import { InputAccumalator, Point } from "./canvas-lib.js";
 
 /*
@@ -64,6 +64,19 @@ export class Soldier extends Actor {
 }
 
 class MyWorld extends SpriteWorld {
+    constructor(canvas: HTMLCanvasElement, config: WorldConfig, spriteMap: SpriteMap) {
+        super(canvas, config, spriteMap);
+
+        let sl0 = this.getLayerAtIndex(0) as SpriteLayer;
+        let sqrs = sl0.getSquaresFor("wr");
+        if(sqrs) {
+            sqrs.pop();
+        }
+
+        let sl1 = this.getLayerAtIndex(1) as SpriteLayer;
+        sl1.addSquareFor("rsl", 1, 0);
+    }
+
     protected constructActorAt(key: string, actorConfig: ActorConfig): Actor | never {
         if(key === "Soldier") {
             return new Soldier(
