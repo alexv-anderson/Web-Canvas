@@ -1,8 +1,9 @@
 import { ActorConfig, LayerConfig, SpriteConfig, WorldConfig } from "./canvas-grid-interface.js";
-import { InputAccumalator, Layer, Point, World } from "./canvas-lib.js";
+import { InputAccumalator, LayeredWorld, Point, World } from "./canvas-lib.js";
 import { loadPNG } from "./general-lib.js";
 import { Sprite } from "./sprite.js";
 import { getImageDirURL, loadSpriteConfig } from "./canvas-grid-local.js";
+import { Layer } from "./layer.js"
 
 /**
  * Represents a single sprite which may be composed of one or more frames.
@@ -80,13 +81,12 @@ export class SpriteMap {
 /**
  * Represents a layer of sprites which for the background/floor
  */
-export class SpriteLayer extends Layer {
+export class SpriteLayer implements Layer {
     /**
      * Initializes the layer
      * @param grid The configuration for the layer
      */
     constructor(grid: LayerConfig, spriteMap: SpriteMap) {
-        super();
         this.grid = grid;
         this.spriteMap = spriteMap;
     }
@@ -252,7 +252,7 @@ export abstract class Actor {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class SpriteWorld extends World {
+export abstract class SpriteWorld extends LayeredWorld {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world will be drawn

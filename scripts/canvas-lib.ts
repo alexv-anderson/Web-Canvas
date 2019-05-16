@@ -2,6 +2,7 @@
 import { loadSpriteMap } from "./canvas-grid-lib.js";
 import { SpriteMap, SpriteWorld } from "./canvas-grid-lib.js";
 import { getCanvas, loadWorld } from "./canvas-grid-local.js";
+import { Layer, LayeredLayout } from "./layer.js"
 
 /**
  * Represents a point in 2D Cartesian space
@@ -37,59 +38,6 @@ export class Point {
 
     private _x: number;
     private _y: number;
-}
-
-/**
- * Represents a layer of sprites which for the background/floor
- */
-export class Layer {
-    /**
-     * Renders the layer on the supplied canvas
-     * @param context The rendering context of the canvas on which the layer should be rendered
-     */
-    public render(context: CanvasRenderingContext2D): void {
-        
-    }
-}
-
-/**
- * Represents a list of layers
- */
-class LayeredLayout {
-    /**
-     * Adds a layer on top of the existing layers
-     * @param layer The layer to be placed at the top of the list
-     */
-    public addLayer(layer: Layer): void {
-        this.layers.push(layer);
-    }
-
-    /**
-     * Supplies the layer at the given index.
-     * 
-     * Note: the lowest layer has an index of 0
-     * @param index The index of the desired layer
-     */
-    public getLayer(index: number): Layer {
-        return this.layers[index];
-    }
-
-    /**
-     * The number of layers in this layout
-     */
-    public get depth(): number {
-        return this.layers.length;
-    }
-
-    /**
-     * Renders the layers of the layout in order
-     * @param context The rendering context of the canvas on which the layout should be rendered
-     */
-    public render(context: CanvasRenderingContext2D): void {
-        this.layers.forEach((layer: Layer) => { layer.render(context); });
-    }
-
-    private layers: Array<Layer> = [];
 }
 
 /**
@@ -215,9 +163,6 @@ export abstract class World {
      * @param context The rendering context of the canvas on which the world should be rendered
      */
     public render(): void {
-        // Draw sprites
-        this.layout.render(this.drawingContext);
-
         this.lines.forEach(line => {
             this.drawingContext.save();
             this.drawingContext.beginPath();
@@ -287,22 +232,6 @@ export abstract class World {
         return this.context;
     }
 
-    /**
-     * Adds a layer to the top of the world's stack of layers
-     * @param layer The layer to be added
-     */
-    protected addLayer(layer: Layer) {
-        this.layout.addLayer(layer);
-    }
-
-    protected get numberOfLayers(): number {
-        return this.layout.depth;
-    }
-
-    protected getLayerAtIndex(index: number): Layer {
-        return this.layout.getLayer(index);
-    }
-
     private setCanvas(canvas: HTMLCanvasElement): void {
         let context = canvas.getContext("2d");
         if(context == null)
@@ -319,6 +248,48 @@ export abstract class World {
     private _viewWidth: number;
 
     private context: CanvasRenderingContext2D;
+}
+
+/**
+ * Reperesents everything on the canvas
+ */
+export abstract class LayeredWorld extends World {
+    /**
+     * Initializes the world
+     * @param canvas The canvas on which the world should be drawn
+     */
+    constructor(canvas: HTMLCanvasElement) {
+        super(canvas);
+    }
+
+    /**
+     * Renders the world
+     * @param spriteMap A map from keys to sprites
+     * @param context The rendering context of the canvas on which the world should be rendered
+     */
+    public render(): void {
+        // Draw sprites
+        this.layout.render(this.drawingContext);
+
+        super.render();
+    }
+
+    /**
+     * Adds a layer to the top of the world's stack of layers
+     * @param layer The layer to be added
+     */
+    protected addLayer(layer: Layer) {
+        this.layout.addLayer(layer);
+    }
+
+    protected get numberOfLayers(): number {
+        return this.layout.depth;
+    }
+
+    protected getLayerAtIndex(index: number): Layer {
+        return this.layout.getLayer(index);
+    }
+
     private layout: LayeredLayout = new LayeredLayout();
 }
 
