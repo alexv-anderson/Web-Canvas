@@ -50,10 +50,7 @@ export class Sprite {
      * @param image The image which holds the sprite
      * @param options Options which change how the sprite behaves
      */
-    constructor(
-        image: HTMLImageElement,
-        options: SpriteProperties
-    )
+    constructor(image: HTMLImageElement, options: SpriteProperties)
     /**
      * Initializes the sprite.
      * 
@@ -62,10 +59,7 @@ export class Sprite {
      * @param image The image which holds the sprite
      * @param options Options which change how the sprite behaves
      */
-    constructor(
-        image: HTMLImageElement,
-        options?: SpriteProperties
-    ) {
+    constructor(image: HTMLImageElement, options?: SpriteProperties) {
         this.frameIndex = 0;
 
         this.numberOfFrames = 1;
@@ -73,7 +67,13 @@ export class Sprite {
         this.imageBaseX = 0;
         this.imageBaseY = 0;
 
+        this._frameHeight = image.height;
+        this._frameWidth = image.width;
+
         if(options !== undefined) {
+            this._frameHeight = options.frameHeight;
+            this._frameWidth = options.frameWidth;
+
             this.numberOfFrames = options.numberOfFrames || this.numberOfFrames;
             this.framesPerSecond = options.fps;
             this.horizontal = options.isHorizontal !== undefined ? options.isHorizontal : this.horizontal;
@@ -100,9 +100,9 @@ export class Sprite {
 
         // Toggle controls whether frames progress to the right or left
         if(this.horizontal) {
-            srcX = this.frameIndex * this.frameWidth;
+            srcX += this.frameIndex * this.frameWidth;
         } else {
-            srcY = this.frameIndex * this.frameHeight;
+            srcY += this.frameIndex * this.frameHeight;
         }
 
         context.drawImage(
@@ -139,21 +139,13 @@ export class Sprite {
      * The width of the sprite's frame
      */
     public get frameWidth(): number {
-        if(this.horizontal) {
-            return this.image.width / this.numberOfFrames;
-        } else {
-            return this.image.width;
-        }
+        return this._frameWidth;
     }
     /**
      * The height of the sprite's frame
      */
     public get frameHeight(): number {
-        if(this.horizontal) {
-            return this.image.height;
-        } else {
-            return this.image.height / this.numberOfFrames;
-        }
+        return this._frameHeight;
     }
 
     private image: HTMLImageElement;
@@ -166,6 +158,9 @@ export class Sprite {
     private lastFrameChangeTime: number;
     private framesPerSecond?: number;
     private frameIndex: number;
+
+    private _frameHeight: number;
+    private _frameWidth: number;
 
     private horizontal: boolean;
 }
@@ -204,45 +199,33 @@ export class SpriteMap {
     }
 
     public loadSpritesFrom(configURL: string): void {
-        loadJSON(configURL, (config: SpriteConfig) => config.spriteSources.forEach(ss => this.appendSpriteSource(ss)));
+        loadJSON(configURL, (config: SpriteConfig) => config.spriteSources.forEach(ss => this.loadSpriteSource(ss)));
     }
     
-    private appendSpriteSource(sss: SpriteSheetSource): void {
+    private loadSpriteSource(sss: SpriteSheetSource): void {
     
         // For each sprite
         sss.singles.forEach((single) => {
             // Load the image file
             loadPNG(sss.baseURL + single.fileName, (image: HTMLImageElement) => {
-    
-                // Add the sprite to the map
-    
-                if(single.isHorizontal !== undefined && single.fps !== undefined) {
-                    this.addSprite(
-                        single.key,
-                        new PointSprite(
-                            image,
-                            single
-                            // {
-                            //     numberOfFrames: single.numberOfFrames,
-                            //     isHorizontal: single.isHorizontal,
-                            //     framesPerSecond: single.fps
-                            // }
-                        )
-                    );
-                } else {
-                    this.addSprite(
-                        single.key,
-                        new PointSprite(
-                            image
-                        )
-                    );
-                }
+                // Add the sprite to the map    
+                this.addSprite(
+                    single.key,
+                    new PointSprite(
+                        image,
+                        single
+                    )
+                );
             });
         });
 
+        // For each sprite sheet
         sss.sheets.forEach((sheet) => {
+            // Load the image file
             loadPNG(sss.baseURL + sheet.fileName, (image) => {
+                // For each sprite in the sheet
                 sheet.sprites.forEach(spriteDescription => {
+                    // Add the sprite to the map
                     this.addSprite(
                         spriteDescription.key,
                         new PointSprite(

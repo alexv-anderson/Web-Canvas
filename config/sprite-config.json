@@ -7,11 +7,11 @@
                     "fileName": "TicTacToe.png",
                     "sprites": [
                         {
-                            "key": "x",
+                            "key": "corner",
                             "frameHeight": 32,
                             "frameWidth": 32,
-                            "sourceX": 0,
-                            "sourceY": 0
+                            "sourceX": 64,
+                            "sourceY": 96
                         }
                     ]
                 }
@@ -21,7 +21,7 @@
                     "fileName": "moving-water-down-vertical.png",
                     "key": "wd",
                     "frameWidth": 32,
-                    "frameHeight": 128,
+                    "frameHeight": 32,
                     "numberOfFrames": 4,
                     "isHorizontal": false,
                     "fps": 4
@@ -29,7 +29,7 @@
                 {
                     "fileName": "moving-water-right.png",
                     "key": "wr",
-                    "frameWidth": 128,
+                    "frameWidth": 32,
                     "frameHeight": 32,
                     "numberOfFrames": 4,
                     "isHorizontal": true,
@@ -44,7 +44,7 @@
                 {
                     "fileName": "roman-soldier-left.png",
                     "key": "rsl",
-                    "frameWidth": 64,
+                    "frameWidth": 32,
                     "frameHeight": 32,
                     "numberOfFrames": 2,
                     "isHorizontal": true,
