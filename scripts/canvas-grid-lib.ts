@@ -1,8 +1,6 @@
 import { ActorConfig, LayerConfig, LayeredSpriteWorldConfig } from "./canvas-grid-interface.js";
 import { InputAccumalator, Point } from "./canvas-lib.js";
-import { loadPNG, loadJSON } from "./general-lib.js";
-import { PointSprite, SpriteConfig, SpriteMap } from "./sprite.js";
-import { getImageDirURL } from "./canvas-grid-local.js";
+import { SpriteMap } from "./sprite.js";
 import { LayeredWorld } from "./canvas-layer-lib.js";
 import { Layer } from "./layer.js"
 

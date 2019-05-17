@@ -1,4 +1,3 @@
-import { getConfigDirURL, getHostURL } from "./local.js";
 import { LayeredSpriteWorldConfig, ActorConfig } from "./canvas-grid-interface.js";
 import { Actor, SpriteWorld, SpriteLayer } from "./canvas-grid-lib.js";
 import { InputAccumalator, Point } from "./canvas-lib.js";
@@ -6,21 +5,6 @@ import { InputAccumalator, Point } from "./canvas-lib.js";
 /*
  * Only things which need to be implemented to create a new canvas world.
  */
-
-/**
- * Supplies the URL for the host's image directory
- */
-export function getImageDirURL(): string {
-    return getHostURL() + "images/";
-}
-
-/**
- * Gets the canvas element
- * @param callback Called once the canvas element has bee located
- */
-export function getCanvas(callback: (canvas: HTMLCanvasElement) => void) {
-    callback(document.getElementById("theCanvas") as HTMLCanvasElement);
-}
 
 export class Soldier extends Actor {
     public update(inputAccumalator: InputAccumalator): void {
@@ -104,12 +88,10 @@ class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig> {
 }
 
 window.onload = function() {
-    getCanvas((canvas: HTMLCanvasElement) => {
         let world = new MyWorld(
-            canvas,
-            getConfigDirURL() + "world-config.json",
-            getConfigDirURL() + "sprite-config.json"
+            (document.getElementById("theCanvas") as HTMLCanvasElement),
+            "./config/world-config.json",
+            "./config/sprite-config.json"
         );
         world.start();
-    });
 }
