@@ -1,6 +1,6 @@
 
 import { WorldConfig } from "./canvas-interface.js";
-import { Layer, LayeredLayout } from "./layer.js";
+import { loadJSON } from "./general-lib.js";
 
 /**
  * Represents a point in 2D Cartesian space
@@ -130,13 +130,19 @@ export class InputAccumalator {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class World {
+export abstract class World<C extends WorldConfig> {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world should be drawn
      */
-    constructor(canvas: HTMLCanvasElement, config: WorldConfig) {
-        this.setCanvas(canvas, config.width, config.height);
+    constructor(canvas: HTMLCanvasElement, configURL: string) {
+        this.setCanvas(canvas);
+
+        loadJSON(configURL, (config: C) => {
+            this.canvas.width = config.view.width;
+            this.canvas.height = config.view.height;
+            this.onConfigurationLoaded(config);
+        });
     }
 
     /**
@@ -176,6 +182,8 @@ export abstract class World {
      * @param inputAccumalator Input collected from the user
      */
     public abstract onUpdate(dt: number, inputAccumalator: InputAccumalator): void;
+
+    protected abstract onConfigurationLoaded(config: C): void;
 
     /**
      * Gets the input accumalator for this world
@@ -242,13 +250,13 @@ export abstract class World {
      * The height of the world's canvas
      */
     public get viewHeight(): number {
-        return this._viewHeight;
+        return this.canvas.height;
     }
     /**
      * The width of the world's canvas
      */
     public get viewWidth(): number {
-        return this._viewWidth;
+        return this.canvas.width;
     }
     /**
      * The drawing context of the world's canvas
@@ -257,68 +265,19 @@ export abstract class World {
         return this.context;
     }
 
-    private setCanvas(canvas: HTMLCanvasElement, width: number, height: number): void {
+    private setCanvas(canvas: HTMLCanvasElement): void {
+        this.canvas = canvas;
         let context = canvas.getContext("2d");
         if(context == null)
             throw Error("Could not initialize canvas");
 
         this.context = context;
-        canvas.width = width;
-        canvas.height = height;
-
-        this._viewWidth = width;
-        this._viewHeight = height;
     }
 
     private lines: Array<{x1: number, y1: number, x2: number, y2: number, style?: string, width?: number}> = [];
 
-    private _viewHeight: number;
-    private _viewWidth: number;
-
+    private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
 
     private lastNow: number;
-}
-
-/**
- * Reperesents everything on the canvas
- */
-export abstract class LayeredWorld extends World {
-    /**
-     * Initializes the world
-     * @param canvas The canvas on which the world should be drawn
-     */
-    constructor(canvas: HTMLCanvasElement, config: WorldConfig) {
-        super(canvas, config);
-    }
-
-    /**
-     * Renders the world
-     * @param spriteMap A map from keys to sprites
-     * @param context The rendering context of the canvas on which the world should be rendered
-     */
-    public render(): void {
-        // Draw sprites
-        this.layout.render(this.drawingContext);
-
-        super.render();
-    }
-
-    /**
-     * Adds a layer to the top of the world's stack of layers
-     * @param layer The layer to be added
-     */
-    protected addLayer(layer: Layer) {
-        this.layout.addLayer(layer);
-    }
-
-    protected get numberOfLayers(): number {
-        return this.layout.depth;
-    }
-
-    protected getLayerAtIndex(index: number): Layer {
-        return this.layout.getLayer(index);
-    }
-
-    private layout: LayeredLayout = new LayeredLayout();
 }

@@ -16,16 +16,6 @@ export function getImageDirURL(): string {
 }
 
 /**
- * Loads the world configuration file
- * @param onLoaded Called once the configuration data has been loaded
- */
-export function loadWorld(canvas: HTMLCanvasElement,spritMap: SpriteMap, callback: (world: SpriteWorld) => void): void {
-    loadJSON(getConfigDirURL() + "world-config.json", (config: LayeredSpriteWorldConfig) => {
-        callback(new MyWorld(canvas, config, spritMap));
-    });
-}
-
-/**
  * Loads the sprite configuration file
  * @param onLoaded Called once the configuration data has been loaded
  */
@@ -63,20 +53,24 @@ export class Soldier extends Actor {
     }
 }
 
-class MyWorld extends SpriteWorld {
-    constructor(canvas: HTMLCanvasElement, config: LayeredSpriteWorldConfig, spriteMap: SpriteMap) {
-        super(canvas, config, spriteMap);
+class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig> {
+    constructor(canvas: HTMLCanvasElement, configURL: string, spriteMap: SpriteMap) {
+        super(canvas, configURL, spriteMap);
+
+        this.ia = new InputAccumalator(canvas);
+    }
+
+    protected onConfigurationLoaded(config: LayeredSpriteWorldConfig): void {
+        super.onConfigurationLoaded(config);
 
         let sl0 = this.getLayerAtIndex(0) as SpriteLayer;
         let sqrs = sl0.getSquaresFor("wr");
         if(sqrs) {
-            sqrs.pop();
+            sqrs.pop();    
         }
 
         let sl1 = this.getLayerAtIndex(1) as SpriteLayer;
         sl1.addSquareFor("rsl", 1, 0);
-
-        this.ia = new InputAccumalator(canvas);
     }
 
     protected constructActorAt(key: string, actorConfig: ActorConfig): Actor | never {
@@ -121,9 +115,8 @@ class MyWorld extends SpriteWorld {
 window.onload = function() {
     getCanvas((canvas: HTMLCanvasElement) => {
         loadSpriteMap((spriteMap: SpriteMap) => {
-            loadWorld(canvas, spriteMap, (world: SpriteWorld) => {
-                world.start();
-            });
+            let world = new MyWorld(canvas, getConfigDirURL() + "world-config.json", spriteMap);
+            world.start();
         });
     });
 }

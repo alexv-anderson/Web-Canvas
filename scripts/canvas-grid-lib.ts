@@ -1,8 +1,9 @@
 import { ActorConfig, LayerConfig, SpriteConfig, LayeredSpriteWorldConfig } from "./canvas-grid-interface.js";
-import { InputAccumalator, LayeredWorld, Point } from "./canvas-lib.js";
+import { InputAccumalator, Point } from "./canvas-lib.js";
 import { loadPNG } from "./general-lib.js";
 import { Sprite } from "./sprite.js";
 import { getImageDirURL, loadSpriteConfig } from "./canvas-grid-local.js";
+import { LayeredWorld } from "./canvas-layer-lib.js";
 import { Layer } from "./layer.js"
 
 /**
@@ -252,16 +253,22 @@ export abstract class Actor {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class SpriteWorld extends LayeredWorld {
+export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig> extends LayeredWorld<C> {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world will be drawn
      * @param config Configuration data for the world
      * @param spriteMap Data structure for the sprites in the world
      */
-    constructor(canvas: HTMLCanvasElement, config: LayeredSpriteWorldConfig, spriteMap: SpriteMap) {
-        super(canvas, config.view);
+    constructor(canvas: HTMLCanvasElement, configURL: string, spriteMap: SpriteMap) {
+        super(canvas, configURL);
 
+        this.spriteMap = spriteMap;
+    }
+
+    protected onConfigurationLoaded(config: C): void {
+        super.onConfigurationLoaded(config);
+        
         if(config.actorConfigs) {
             for(let name in config.actorConfigs) {
                 for(let actorConfig of config.actorConfigs[name])
@@ -269,9 +276,7 @@ export abstract class SpriteWorld extends LayeredWorld {
             }
         }
 
-        config.layers.forEach((lc: LayerConfig) => { this.addLayer(new SpriteLayer(lc, spriteMap)); });
-
-        this.spriteMap = spriteMap;
+        config.layers.forEach((lc: LayerConfig) => { this.addLayer(new SpriteLayer(lc, this.spriteMap)); });        
     }
 
     protected abstract constructActorAt(key: string, actorConfig: ActorConfig): Actor;

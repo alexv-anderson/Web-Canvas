@@ -21,8 +21,8 @@ export type ActorConfig = {
     sprites: Array<string>
 }
 
-export type LayeredSpriteWorldConfig = {
-    view: WorldConfig,
+export interface LayeredSpriteWorldConfig extends WorldConfig {
+    // view: WorldConfig,
     layers: Array<LayerConfig>,
     actorConfigs?: {
         [key in string]: [ActorConfig]
