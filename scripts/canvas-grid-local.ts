@@ -1,6 +1,6 @@
-import { LayeredSpriteWorldConfig, ActorConfig } from "./canvas-grid-interface.js";
-import { Actor, SpriteWorld, SpriteLayer } from "./canvas-grid-lib.js";
-import { InputAccumalator, Point } from "./canvas-lib.js";
+import { LayeredSpriteWorldConfig, ActorConfig } from "./lib/canvas-grid-interface.js";
+import { Actor, SpriteWorld, SpriteLayer } from "./lib/canvas-grid-lib.js";
+import { InputAccumalator, Point } from "./lib/canvas-lib.js";
 
 /*
  * Only things which need to be implemented to create a new canvas world.

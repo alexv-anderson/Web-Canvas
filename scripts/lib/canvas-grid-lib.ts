@@ -2,7 +2,7 @@ import { ActorConfig, LayerConfig, LayeredSpriteWorldConfig } from "./canvas-gri
 import { InputAccumalator, Point } from "./canvas-lib.js";
 import { SpriteMap } from "./sprite.js";
 import { LayeredWorld } from "./canvas-layer-lib.js";
-import { Layer } from "./layer.js"
+import { Layer } from "./layer.js";
 
 /**
  * Represents a layer of sprites which for the background/floor
