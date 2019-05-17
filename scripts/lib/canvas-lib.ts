@@ -49,10 +49,16 @@ export class InputAccumalator {
     constructor(canvas: HTMLCanvasElement) {
         document.addEventListener("mousedown", (event: MouseEvent) => {
             let rect = canvas.getBoundingClientRect();
-            this._mouseDownPoint = new Point(
+            
+            let clickPoint = new Point(
                 event.clientX - rect.left,
                 event.clientY - rect.top
             );
+
+            if(clickPoint.x >= 0 && clickPoint.x <= canvas.width &&
+                clickPoint.y >= 0 && clickPoint.y <= canvas.height) {
+                this._mouseDownPoint = clickPoint;
+            }
         });
 
         document.addEventListener("keydown", (event: KeyboardEvent) => {
