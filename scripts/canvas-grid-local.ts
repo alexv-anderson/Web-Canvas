@@ -1,7 +1,7 @@
 import { getConfigDirURL, getHostURL } from "./local.js";
 import { loadJSON } from "./general-lib.js";
-import { SpriteConfig, WorldConfig, ActorConfig } from "./canvas-grid-interface.js";
-import { Actor, SpriteMap, SpriteWorld, SpriteLayer } from "./canvas-grid-lib.js";
+import { SpriteConfig, LayeredSpriteWorldConfig, ActorConfig } from "./canvas-grid-interface.js";
+import { loadSpriteMap, Actor, SpriteMap, SpriteWorld, SpriteLayer } from "./canvas-grid-lib.js";
 import { InputAccumalator, Point } from "./canvas-lib.js";
 
 /*
@@ -20,7 +20,7 @@ export function getImageDirURL(): string {
  * @param onLoaded Called once the configuration data has been loaded
  */
 export function loadWorld(canvas: HTMLCanvasElement,spritMap: SpriteMap, callback: (world: SpriteWorld) => void): void {
-    loadJSON(getConfigDirURL() + "world-config.json", (config: WorldConfig) => {
+    loadJSON(getConfigDirURL() + "world-config.json", (config: LayeredSpriteWorldConfig) => {
         callback(new MyWorld(canvas, config, spritMap));
     });
 }
@@ -64,7 +64,7 @@ export class Soldier extends Actor {
 }
 
 class MyWorld extends SpriteWorld {
-    constructor(canvas: HTMLCanvasElement, config: WorldConfig, spriteMap: SpriteMap) {
+    constructor(canvas: HTMLCanvasElement, config: LayeredSpriteWorldConfig, spriteMap: SpriteMap) {
         super(canvas, config, spriteMap);
 
         let sl0 = this.getLayerAtIndex(0) as SpriteLayer;
@@ -75,6 +75,8 @@ class MyWorld extends SpriteWorld {
 
         let sl1 = this.getLayerAtIndex(1) as SpriteLayer;
         sl1.addSquareFor("rsl", 1, 0);
+
+        this.ia = new InputAccumalator(canvas);
     }
 
     protected constructActorAt(key: string, actorConfig: ActorConfig): Actor | never {
@@ -107,5 +109,21 @@ class MyWorld extends SpriteWorld {
         }
     }
 
+    protected get inputAccumalator(): InputAccumalator {
+        return this.ia;
+    }
+
+    private ia: InputAccumalator;
+
     private lastClickPoint: Point;
+}
+
+window.onload = function() {
+    getCanvas((canvas: HTMLCanvasElement) => {
+        loadSpriteMap((spriteMap: SpriteMap) => {
+            loadWorld(canvas, spriteMap, (world: SpriteWorld) => {
+                world.start();
+            });
+        });
+    });
 }

@@ -1,8 +1,6 @@
 
-import { loadSpriteMap } from "./canvas-grid-lib.js";
-import { SpriteMap, SpriteWorld } from "./canvas-grid-lib.js";
-import { getCanvas, loadWorld } from "./canvas-grid-local.js";
-import { Layer, LayeredLayout } from "./layer.js"
+import { WorldConfig } from "./canvas-interface.js";
+import { Layer, LayeredLayout } from "./layer.js";
 
 /**
  * Represents a point in 2D Cartesian space
@@ -137,8 +135,17 @@ export abstract class World {
      * Initializes the world
      * @param canvas The canvas on which the world should be drawn
      */
-    constructor(canvas: HTMLCanvasElement) {
-        this.setCanvas(canvas);
+    constructor(canvas: HTMLCanvasElement, config: WorldConfig) {
+        this.setCanvas(canvas, config.width, config.height);
+    }
+
+    /**
+     * Start the world in motion
+     */
+    public start() {
+        this.update();
+        this.render();
+        window.requestAnimationFrame(() => this.start());
     }
 
     /**
@@ -146,8 +153,21 @@ export abstract class World {
      * @param dt Number of milliseconds which have passed since the last time this method was called
      * @param inputAccumalator Input collected from the user
      */
-    public update(dt: number, inputAccumalator: InputAccumalator) {
-        this.onUpdate(dt, inputAccumalator);
+    public update() {
+        let dt = 0;
+        if(this.lastNow === undefined) {
+            this.lastNow = performance.now();
+        } else {
+            let now = performance.now();
+            dt = now - this.lastNow;
+            this.lastNow = now;
+        }
+
+        this.context.clearRect(0, 0, this.viewWidth, this.viewHeight);
+
+        this.onUpdate(dt, this.inputAccumalator);
+
+        this.inputAccumalator.reset();
     }
 
     /**
@@ -156,6 +176,11 @@ export abstract class World {
      * @param inputAccumalator Input collected from the user
      */
     public abstract onUpdate(dt: number, inputAccumalator: InputAccumalator): void;
+
+    /**
+     * Gets the input accumalator for this world
+     */
+    protected abstract get inputAccumalator(): InputAccumalator;
 
     /**
      * Renders the world
@@ -232,14 +257,17 @@ export abstract class World {
         return this.context;
     }
 
-    private setCanvas(canvas: HTMLCanvasElement): void {
+    private setCanvas(canvas: HTMLCanvasElement, width: number, height: number): void {
         let context = canvas.getContext("2d");
         if(context == null)
             throw Error("Could not initialize canvas");
 
         this.context = context;
-        this._viewHeight = canvas.height;
-        this._viewWidth = canvas.width;
+        canvas.width = width;
+        canvas.height = height;
+
+        this._viewWidth = width;
+        this._viewHeight = height;
     }
 
     private lines: Array<{x1: number, y1: number, x2: number, y2: number, style?: string, width?: number}> = [];
@@ -248,6 +276,8 @@ export abstract class World {
     private _viewWidth: number;
 
     private context: CanvasRenderingContext2D;
+
+    private lastNow: number;
 }
 
 /**
@@ -258,8 +288,8 @@ export abstract class LayeredWorld extends World {
      * Initializes the world
      * @param canvas The canvas on which the world should be drawn
      */
-    constructor(canvas: HTMLCanvasElement) {
-        super(canvas);
+    constructor(canvas: HTMLCanvasElement, config: WorldConfig) {
+        super(canvas, config);
     }
 
     /**
@@ -291,50 +321,4 @@ export abstract class LayeredWorld extends World {
     }
 
     private layout: LayeredLayout = new LayeredLayout();
-}
-
-/**
- * Begins loading everything once the body of the document has loaded
- */
-window.onload = function onBodyLoad() {
-    getCanvas((canvas: HTMLCanvasElement) => {
-        loadSpriteMap((spriteMap: SpriteMap) => {
-            loadWorld(canvas, spriteMap, (world: SpriteWorld) => {            
-                canvas.height = world.viewHeight;
-                canvas.width = world.viewWidth;
-
-                let context = canvas.getContext("2d");
-
-                let ia = new InputAccumalator(canvas);
-
-                let lastNow: number;
-
-                function update() {
-                    if(context === null) {
-                        throw new Error("Could not load context for canvas");
-                    }
-
-                    let dt = 0;
-                    if(lastNow === undefined) {
-                        lastNow = performance.now();
-                    } else {
-                        let now = performance.now();
-                        dt = now - lastNow;
-                        lastNow = now;
-                    }
-
-                    context.clearRect(0, 0, canvas.width, canvas.height);
-
-                    // Updated animated sprites
-                    world.update(dt, ia);
-                    ia.reset();
-
-                    world.render();
-
-                    window.requestAnimationFrame(update);
-                }
-                update();
-            });
-        });
-    });
 }

@@ -1,3 +1,5 @@
+import { WorldConfig } from "./canvas-interface.js"
+
 /**
  * Type information for the sprite configuration data
  */
@@ -19,8 +21,8 @@ export type ActorConfig = {
     sprites: Array<string>
 }
 
-export type WorldConfig = {
-    view: { height: number, width: number },
+export type LayeredSpriteWorldConfig = {
+    view: WorldConfig,
     layers: Array<LayerConfig>,
     actorConfigs?: {
         [key in string]: [ActorConfig]

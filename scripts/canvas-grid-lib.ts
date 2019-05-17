@@ -1,5 +1,5 @@
-import { ActorConfig, LayerConfig, SpriteConfig, WorldConfig } from "./canvas-grid-interface.js";
-import { InputAccumalator, LayeredWorld, Point, World } from "./canvas-lib.js";
+import { ActorConfig, LayerConfig, SpriteConfig, LayeredSpriteWorldConfig } from "./canvas-grid-interface.js";
+import { InputAccumalator, LayeredWorld, Point } from "./canvas-lib.js";
 import { loadPNG } from "./general-lib.js";
 import { Sprite } from "./sprite.js";
 import { getImageDirURL, loadSpriteConfig } from "./canvas-grid-local.js";
@@ -259,8 +259,8 @@ export abstract class SpriteWorld extends LayeredWorld {
      * @param config Configuration data for the world
      * @param spriteMap Data structure for the sprites in the world
      */
-    constructor(canvas: HTMLCanvasElement, config: WorldConfig, spriteMap: SpriteMap) {
-        super(canvas);
+    constructor(canvas: HTMLCanvasElement, config: LayeredSpriteWorldConfig, spriteMap: SpriteMap) {
+        super(canvas, config.view);
 
         if(config.actorConfigs) {
             for(let name in config.actorConfigs) {
