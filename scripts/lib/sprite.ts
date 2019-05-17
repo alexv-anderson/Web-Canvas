@@ -1,46 +1,35 @@
 
 import { loadJSON, loadPNG } from "./general.js";
 
-/**
- * Options which modify how a sprite in a sprite sheet behaves
- */
-interface SpriteSheetSpriteOptions extends SpriteOptions {
-    key: string
+interface SpriteConfig {
+    spriteSources: Array<SpriteSheetSource>
 }
-
-/**
- * Represets a sprite sheet
- */
-class SpriteSheet {
-    /**
-     * Initiallizes all of the sprites in the sprite sheet
-     * @param image The image element which contains the sprite sheet
-     * @param sheetConfig A list with an entry for each sprite in the sprite sheet
-     */
-    constructor(image: HTMLImageElement, sheetConfig: Array<SpriteSheetSpriteOptions>) {
-        sheetConfig.forEach(ssso => this.sprites[ssso.key] = new Sprite(image, ssso));
-    }
-
-    /**
-     * Retrieves a sprite using its unique key
-     * @param key The key which uniquely identifies the sprite in this sprite sheet
-     */
-    public getSprite(key: string): Sprite {
-        return this.sprites[key];
-    }
-
-    private sprites: {[key: string]: Sprite}
+interface SpriteSheetSource {
+    baseURL: string,
+    sheets: Array<MultispriteSheetDescription>,
+    singles: Array<MonospriteSheetDescription>
 }
+interface MultispriteSheetDescription {
+    fileName: string,
+    sprites: Array<SpriteDescription>
+}
+interface MonospriteSheetDescription extends SpriteDescription {
+    fileName: string,
+}
+interface SpriteDescription extends SpriteProperties {
+    key: string,
+}
+interface SpriteProperties {
+    frameHeight: number,
+    frameWidth: number,
 
-/**
- * Options which modify how a sprite behaves
- */
-interface SpriteOptions {
     numberOfFrames?: number,
+    fps?: number,
+
     isHorizontal?: boolean,
-    framesPerSecond?: number,
-    imageBaseX?: number,
-    imageBaseY?: number
+
+    sourceX?: number,
+    sourceY?: number
 }
 
 /**
@@ -63,7 +52,7 @@ export class Sprite {
      */
     constructor(
         image: HTMLImageElement,
-        options: SpriteOptions
+        options: SpriteProperties
     )
     /**
      * Initializes the sprite.
@@ -75,7 +64,7 @@ export class Sprite {
      */
     constructor(
         image: HTMLImageElement,
-        options?: SpriteOptions
+        options?: SpriteProperties
     ) {
         this.frameIndex = 0;
 
@@ -86,10 +75,10 @@ export class Sprite {
 
         if(options !== undefined) {
             this.numberOfFrames = options.numberOfFrames || this.numberOfFrames;
-            this.framesPerSecond = options.framesPerSecond;
+            this.framesPerSecond = options.fps;
             this.horizontal = options.isHorizontal !== undefined ? options.isHorizontal : this.horizontal;
-            this.imageBaseX = options.imageBaseX || this.imageBaseX;
-            this.imageBaseY = options.imageBaseY || this.imageBaseY;
+            this.imageBaseX = options.sourceX || this.imageBaseX;
+            this.imageBaseY = options.sourceY || this.imageBaseY;
         }
 
         this.lastUpdateTime = 0;
@@ -206,20 +195,6 @@ export class PointSprite extends Sprite {
     }
 }
 
-export type SpriteConfig = { 
-    imageDirectoryPath: string,
-    spriteImageInfo: Array<SpriteInitInfo>
-}
-type SpriteInitInfo = {
-    fileName: string,
-    mapKey: string,
-    width: number,
-    height: number,
-    numberOfFrames: number,
-    isHorizontal?: boolean,
-    fps?: number
-}
-
 /**
  * Maps keys to a sprite
  */
@@ -229,38 +204,53 @@ export class SpriteMap {
     }
 
     public loadSpritesFrom(configURL: string): void {
-        loadJSON(configURL, (config: SpriteConfig) => this.appendSprites(config));
+        loadJSON(configURL, (config: SpriteConfig) => config.spriteSources.forEach(ss => this.appendSpriteSource(ss)));
     }
     
-    private appendSprites(config: SpriteConfig): void {
+    private appendSpriteSource(sss: SpriteSheetSource): void {
     
         // For each sprite
-        config.spriteImageInfo.forEach((sii) => {
+        sss.singles.forEach((single) => {
             // Load the image file
-            loadPNG(config.imageDirectoryPath + sii.fileName, (image: HTMLImageElement) => {
+            loadPNG(sss.baseURL + single.fileName, (image: HTMLImageElement) => {
     
                 // Add the sprite to the map
     
-                if(sii.isHorizontal !== undefined && sii.fps !== undefined) {
+                if(single.isHorizontal !== undefined && single.fps !== undefined) {
                     this.addSprite(
-                        sii.mapKey,
+                        single.key,
                         new PointSprite(
                             image,
-                            {
-                                numberOfFrames: sii.numberOfFrames,
-                                isHorizontal: sii.isHorizontal,
-                                framesPerSecond: sii.fps
-                            }
+                            single
+                            // {
+                            //     numberOfFrames: single.numberOfFrames,
+                            //     isHorizontal: single.isHorizontal,
+                            //     framesPerSecond: single.fps
+                            // }
                         )
                     );
                 } else {
                     this.addSprite(
-                        sii.mapKey,
+                        single.key,
                         new PointSprite(
                             image
                         )
                     );
                 }
+            });
+        });
+
+        sss.sheets.forEach((sheet) => {
+            loadPNG(sss.baseURL + sheet.fileName, (image) => {
+                sheet.sprites.forEach(spriteDescription => {
+                    this.addSprite(
+                        spriteDescription.key,
+                        new PointSprite(
+                            image,
+                            spriteDescription
+                        )
+                    );
+                });
             });
         });
     }

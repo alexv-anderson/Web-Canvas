@@ -1,44 +1,62 @@
 {
-    "imageDirectoryPath": "./images/",
-    "spriteImageInfo": [
+    "spriteSources": [
         {
-            "fileName": "moving-water-down-vertical.png",
-            "mapKey": "wd",
-            "width": 32,
-            "height": 128,
-            "numberOfFrames": 4,
-            "isHorizontal": false,
-            "fps": 4
-        },
-        {
-            "fileName": "moving-water-right.png",
-            "mapKey": "wr",
-            "width": 128,
-            "height": 32,
-            "numberOfFrames": 4,
-            "isHorizontal": true,
-            "fps": 4
-        },
-        {
-            "fileName": "grass.png",
-            "mapKey": "g",
-            "width": 32,
-            "height": 32
-        },
-        {
-            "fileName": "roman-soldier-left.png",
-            "mapKey": "rsl",
-            "width": 64,
-            "height": 32,
-            "numberOfFrames": 2,
-            "isHorizontal": true,
-            "fps": 4
-        },
-        {
-            "fileName": "target.png",
-            "mapKey": "target",
-            "width": 32,
-            "height": 32
+            "baseURL": "./images/",
+            "sheets": [
+                {
+                    "fileName": "TicTacToe.png",
+                    "sprites": [
+                        {
+                            "key": "x",
+                            "frameHeight": 32,
+                            "frameWidth": 32,
+                            "sourceX": 0,
+                            "sourceY": 0
+                        }
+                    ]
+                }
+            ],
+            "singles": [
+                {
+                    "fileName": "moving-water-down-vertical.png",
+                    "key": "wd",
+                    "frameWidth": 32,
+                    "frameHeight": 128,
+                    "numberOfFrames": 4,
+                    "isHorizontal": false,
+                    "fps": 4
+                },
+                {
+                    "fileName": "moving-water-right.png",
+                    "key": "wr",
+                    "frameWidth": 128,
+                    "frameHeight": 32,
+                    "numberOfFrames": 4,
+                    "isHorizontal": true,
+                    "fps": 4
+                },
+                {
+                    "fileName": "grass.png",
+                    "key": "g",
+                    "frameWidth": 32,
+                    "frameHeight": 32
+                },
+                {
+                    "fileName": "roman-soldier-left.png",
+                    "key": "rsl",
+                    "frameWidth": 64,
+                    "frameHeight": 32,
+                    "numberOfFrames": 2,
+                    "isHorizontal": true,
+                    "fps": 4
+                },
+                {
+                    "fileName": "target.png",
+                    "key": "target",
+                    "frameWidth": 32,
+                    "frameHeight": 32
+                }
+            ]
         }
     ]
 }
