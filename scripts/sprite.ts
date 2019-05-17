@@ -1,4 +1,6 @@
 
+import { loadJSON, loadPNG } from "./general-lib.js";
+
 /**
  * Options which modify how a sprite in a sprite sheet behaves
  */
@@ -177,4 +179,133 @@ export class Sprite {
     private frameIndex: number;
 
     private horizontal: boolean;
+}
+
+interface Point {
+    x: number,
+    y: number
+}
+
+/**
+ * Represents a single sprite which may be composed of one or more frames.
+ */
+export class PointSprite extends Sprite {
+
+    /**
+     * Draws the current frame of the sprite on the canvas at the given coordinates.
+     * 
+     * @param context The canvas' 2D rendering context
+     * @param center The center point of the sprite's frame on the canvas
+     */
+    public renderAtCenterPoint(context: CanvasRenderingContext2D, center: Point): void {
+        super.render(
+            context,
+            center.x - (this.frameWidth / 2),
+            center.y - (this.frameHeight / 2)
+        );
+    }
+}
+
+export type SpriteConfig = { 
+    imageDirectoryPath: string,
+    spriteImageInfo: Array<SpriteInitInfo>
+}
+type SpriteInitInfo = {
+    fileName: string,
+    mapKey: string,
+    width: number,
+    height: number,
+    numberOfFrames: number,
+    isHorizontal?: boolean,
+    fps?: number
+}
+
+/**
+ * Maps keys to a sprite
+ */
+export class SpriteMap {
+    constructor() {
+        this.map = new Map<string, PointSprite>();
+    }
+
+    public loadSpritesFrom(configURL: string): void {
+        loadJSON(configURL, (config: SpriteConfig) => this.appendSprites(config));
+    }
+    
+    private appendSprites(config: SpriteConfig): void {
+    
+        // For each sprite
+        config.spriteImageInfo.forEach((sii) => {
+            // Load the image file
+            loadPNG(config.imageDirectoryPath + sii.fileName, (image: HTMLImageElement) => {
+    
+                // Add the sprite to the map
+    
+                if(sii.isHorizontal !== undefined && sii.fps !== undefined) {
+                    this.addSprite(
+                        sii.mapKey,
+                        new PointSprite(
+                            image,
+                            {
+                                numberOfFrames: sii.numberOfFrames,
+                                isHorizontal: sii.isHorizontal,
+                                framesPerSecond: sii.fps
+                            }
+                        )
+                    );
+                } else {
+                    this.addSprite(
+                        sii.mapKey,
+                        new PointSprite(
+                            image
+                        )
+                    );
+                }
+            });
+        });
+    }
+    
+
+    /**
+     * Adds a key and its sprite to the map.
+     * 
+     * @param key The key to be used for the given sprite
+     * @param sprite The sprte to be associated with the given key
+     */
+    public addSprite(key: string, sprite: PointSprite): void {
+        this.map.set(key, sprite);
+    }
+
+    /**
+     * Updates the frame for all of the sprites in the map.
+     * @param dt Number of milliseconds which have passed since the last time this method was called
+     */
+    public updateAllSprites(dt: number): void {
+        this.map.forEach((sprite: PointSprite) => sprite.update(dt));
+    }
+
+    /**
+     * Draws the current frame of the sprite associated with the given key on the canvas at the given coordinates.
+     * 
+     * @param context The canvas' 2D rendering context
+     * @param key The key of the sprite to be drawn at the given coordinates
+     * @param center The center point of the sprite's frame on the canvas
+     */
+    public render(context: CanvasRenderingContext2D, key: string, center: Point): void {
+        let sprite = this.getSprite(key);
+
+        if(sprite) {
+            sprite.renderAtCenterPoint(context, center);
+        }
+    }
+
+    /**
+     * Supplies the sprite associated with the given key
+     * @param key The key for the desired sprite
+     */
+    public getSprite(key: string): PointSprite | undefined {
+        return this.map.get(key);
+    }
+
+    private map: Map<string, PointSprite>;
 }

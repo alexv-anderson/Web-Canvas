@@ -1,7 +1,6 @@
 import { getConfigDirURL, getHostURL } from "./local.js";
-import { loadJSON } from "./general-lib.js";
-import { SpriteConfig, LayeredSpriteWorldConfig, ActorConfig } from "./canvas-grid-interface.js";
-import { loadSpriteMap, Actor, SpriteMap, SpriteWorld, SpriteLayer } from "./canvas-grid-lib.js";
+import { LayeredSpriteWorldConfig, ActorConfig } from "./canvas-grid-interface.js";
+import { Actor, SpriteWorld, SpriteLayer } from "./canvas-grid-lib.js";
 import { InputAccumalator, Point } from "./canvas-lib.js";
 
 /*
@@ -13,14 +12,6 @@ import { InputAccumalator, Point } from "./canvas-lib.js";
  */
 export function getImageDirURL(): string {
     return getHostURL() + "images/";
-}
-
-/**
- * Loads the sprite configuration file
- * @param onLoaded Called once the configuration data has been loaded
- */
-export function loadSpriteConfig(onLoaded: (config: SpriteConfig) => void): void {
-    loadJSON(getConfigDirURL() + "sprite-config.json", onLoaded);
 }
 
 /**
@@ -54,8 +45,8 @@ export class Soldier extends Actor {
 }
 
 class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig> {
-    constructor(canvas: HTMLCanvasElement, configURL: string, spriteMap: SpriteMap) {
-        super(canvas, configURL, spriteMap);
+    constructor(canvas: HTMLCanvasElement, configURL: string, spriteMapURL: string) {
+        super(canvas, configURL, spriteMapURL);
 
         this.ia = new InputAccumalator(canvas);
     }
@@ -114,9 +105,11 @@ class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig> {
 
 window.onload = function() {
     getCanvas((canvas: HTMLCanvasElement) => {
-        loadSpriteMap((spriteMap: SpriteMap) => {
-            let world = new MyWorld(canvas, getConfigDirURL() + "world-config.json", spriteMap);
-            world.start();
-        });
+        let world = new MyWorld(
+            canvas,
+            getConfigDirURL() + "world-config.json",
+            getConfigDirURL() + "sprite-config.json"
+        );
+        world.start();
     });
 }

@@ -1,4 +1,5 @@
 {
+    "imageDirectoryPath": "./images/",
     "spriteImageInfo": [
         {
             "fileName": "moving-water-down-vertical.png",
