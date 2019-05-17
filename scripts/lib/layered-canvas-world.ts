@@ -1,5 +1,5 @@
-import { WorldConfig } from "./canvas-interface.js";
-import { World } from "./canvas-lib.js";
+import { WorldConfig } from "./base-canvas-world-interface.js";
+import { World } from "./base-canvas-world.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
 /**

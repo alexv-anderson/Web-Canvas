@@ -1,5 +1,5 @@
 
-import { loadJSON, loadPNG } from "./general-lib.js";
+import { loadJSON, loadPNG } from "./general.js";
 
 /**
  * Options which modify how a sprite in a sprite sheet behaves

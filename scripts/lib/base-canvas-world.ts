@@ -1,6 +1,6 @@
 
-import { WorldConfig } from "./canvas-interface.js";
-import { loadJSON } from "./general-lib.js";
+import { WorldConfig } from "./base-canvas-world-interface.js";
+import { loadJSON } from "./general.js";
 
 /**
  * Represents a point in 2D Cartesian space
@@ -49,7 +49,7 @@ export class InputAccumalator {
     constructor(canvas: HTMLCanvasElement) {
         document.addEventListener("mousedown", (event: MouseEvent) => {
             let rect = canvas.getBoundingClientRect();
-            
+
             let clickPoint = new Point(
                 event.clientX - rect.left,
                 event.clientY - rect.top
