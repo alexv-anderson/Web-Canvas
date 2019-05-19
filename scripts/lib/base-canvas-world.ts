@@ -1,5 +1,4 @@
 
-import { WorldConfig } from "./base-canvas-world-interface.js";
 import { loadJSON } from "./general.js";
 
 /**
@@ -133,10 +132,17 @@ export class InputAccumalator {
     private _arrowRightDown: boolean;
 }
 
+export interface WorldConfig {
+    view: {
+        width: number,
+        height: number
+    }
+}
+
 /**
  * Reperesents everything on the canvas
  */
-export abstract class World<C extends WorldConfig> {
+export abstract class World<C extends WorldConfig, IA extends InputAccumalator> {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world should be drawn
@@ -194,7 +200,7 @@ export abstract class World<C extends WorldConfig> {
     /**
      * Gets the input accumalator for this world
      */
-    protected abstract get inputAccumalator(): InputAccumalator;
+    protected abstract get inputAccumalator(): IA;
 
     /**
      * Renders the world

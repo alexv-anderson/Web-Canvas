@@ -1,18 +1,11 @@
-import { WorldConfig } from "./base-canvas-world-interface.js";
-import { World } from "./base-canvas-world.js";
+
+import { World, WorldConfig, InputAccumalator } from "./base-canvas-world.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
 /**
  * Reperesents everything on the canvas
  */
-export abstract class LayeredWorld<C extends WorldConfig> extends World<C> {
-    /**
-     * Initializes the world
-     * @param canvas The canvas on which the world should be drawn
-     */
-    constructor(canvas: HTMLCanvasElement, configURL: string) {
-        super(canvas, configURL);
-    }
+export abstract class LayeredWorld<C extends WorldConfig, IA extends InputAccumalator> extends World<C, IA> {
 
     protected onConfigurationLoaded(config: C): void {
         

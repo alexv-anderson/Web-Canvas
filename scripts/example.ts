@@ -28,7 +28,7 @@ export class Soldier extends Actor {
     }
 }
 
-class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig> {
+class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, InputAccumalator> {
     constructor(canvas: HTMLCanvasElement, configURL: string, spriteMapURL: string) {
         super(canvas, configURL, spriteMapURL);
 
@@ -56,7 +56,8 @@ class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig> {
                 actorConfig.sprites
             )
         }
-        throw new Error("No matching sprite for " + key);
+        
+        return super.constructActorAt(key, actorConfig);
     }
 
     public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {

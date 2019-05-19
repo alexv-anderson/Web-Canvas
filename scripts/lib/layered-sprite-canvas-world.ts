@@ -115,7 +115,7 @@ export abstract class Actor {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig> extends LayeredWorld<C> {
+export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends InputAccumalator> extends LayeredWorld<C, IA> {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world will be drawn
@@ -141,7 +141,9 @@ export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig> extends La
         config.layers.forEach((lc: LayerConfig) => { this.addLayer(new SpriteLayer(lc, this.spriteMap)); });        
     }
 
-    protected abstract constructActorAt(key: string, actorConfig: ActorConfig): Actor;
+    protected constructActorAt(key: string, actorConfig: ActorConfig): Actor {
+        throw new Error("No matching sprite for " + key);
+    }
 
     public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
         this.spriteMap.updateAllSprites(dt);

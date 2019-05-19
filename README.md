@@ -85,7 +85,7 @@ The layout and contents of the canvas/world is specified in a second JSON file s
 }
 ```
 - `view` contains properties about the canvas/view
-- `layers` is a list of of objects which describe the layers of sprites. The properties of the objects are the `key`s found in the sprite configuration file. Each property is a list of pairs of numbers. Each pair is a coordinate of in the layer's 32x32 pixel grid.
+- `layers` is a list of of objects which describe the layers of sprites. The properties of the objects are the `key`s found in the sprite configuration file. Each property is a list of pairs of numbers. Each pair is a _(row, column)_ coordinate of in the layer's 32x32 pixel grid.
 - `actorConfigs` is an object whose properties are the names of the subclasses of the `Actor` class. The properties are lists of objects where each object represents an instance of the subclass in the world
   - `location` is the location of the actor in pixels
   - `sprites` the `key`s of the sprites which the actor can access
