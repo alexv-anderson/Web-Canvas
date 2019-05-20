@@ -1,9 +1,8 @@
 import { InputAccumalator } from "./input.js";
 import { Point } from "./common.js";
 import { SpriteMap } from "./sprite.js";
-import { LayeredWorld } from "./layered-world.js";
+import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Layer } from "./layer.js";
-import { WorldConfig } from "./world";
 
 /**
  * Represents a layer of sprites which for the background/floor
@@ -13,7 +12,7 @@ export class SpriteLayer implements Layer {
      * Initializes the layer
      * @param grid The configuration for the layer
      */
-    constructor(grid: LayerConfig, spriteMap: SpriteMap) {
+    constructor(grid: SpriteLayerConfig, spriteMap: SpriteMap) {
         this.grid = grid;
         this.spriteMap = spriteMap;
     }
@@ -59,7 +58,7 @@ export class SpriteLayer implements Layer {
         delete this.grid[spriteKey];
     }
 
-    private grid: LayerConfig;
+    private grid: SpriteLayerConfig;
     private spriteMap: SpriteMap;
 }
 
@@ -113,7 +112,7 @@ export abstract class Actor<IA extends InputAccumalator> {
     private spriteKeys: Array<string>;
 }
 
-export type LayerConfig = { [key in string]: Array<Array<number>> };
+export interface SpriteLayerConfig extends LayerConfig { [key: string]: Array<Array<number>> };
 
 export type ActorConfig = {
     location: Array<number>,
@@ -121,17 +120,16 @@ export type ActorConfig = {
     sprites: Array<string>
 }
 
-export interface LayeredSpriteWorldConfig extends WorldConfig {
-    layers: Array<LayerConfig>,
+export interface LayeredSpriteWorldConfig extends LayeredWorldConfig<SpriteLayerConfig> {
     actorConfigs?: {
-        [key in string]: [ActorConfig]
+        [key: string]: [ActorConfig]
     }
 }
 
 /**
  * Reperesents everything on the canvas
  */
-export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends InputAccumalator> extends LayeredWorld<C> {
+export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends InputAccumalator> extends LayeredWorld<C, SpriteLayerConfig> {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world will be drawn
@@ -153,8 +151,12 @@ export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends
                     this.actors.push(this.constructActorAt(name, actorConfig));
             }
         }
+    }
 
-        config.layers.forEach((lc: LayerConfig) => { this.addLayer(new SpriteLayer(lc, this.spriteMap)); });        
+    protected onLayerConfigurationLoaded(config: SpriteLayerConfig): void {
+        super.onLayerConfigurationLoaded(config);
+
+        this.addLayer(new SpriteLayer(config, this.spriteMap));
     }
 
     protected constructActorAt(key: string, actorConfig: ActorConfig): Actor<IA> | never {

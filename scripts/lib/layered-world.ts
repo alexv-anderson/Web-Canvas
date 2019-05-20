@@ -2,13 +2,27 @@
 import { World, WorldConfig } from "./world.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
+export interface LayeredWorldConfig<LC extends LayerConfig> extends WorldConfig {
+    layers: Array<LC>
+}
+
+export interface LayerConfig {
+
+}
+
 /**
  * Reperesents everything on the canvas
  */
-export abstract class LayeredWorld<C extends WorldConfig> extends World<C> {
+export abstract class LayeredWorld<C extends LayeredWorldConfig<LC>, LC extends LayerConfig> extends World<C> {
 
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
+
+        config.layers.forEach(lc => this.onLayerConfigurationLoaded(lc));
+    }
+
+    protected onLayerConfigurationLoaded(config: LC): void {
+
     }
 
     public onUpdate(dt: number) {
