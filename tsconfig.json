@@ -9,7 +9,7 @@
     "target": "es6"
   },
   "files": [
-    "scripts/lib/layered-sprite-canvas-world.ts",
+    "scripts/lib/layered-sprite-world.ts",
     "scripts/example.ts"
   ]
 }

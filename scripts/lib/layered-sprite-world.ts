@@ -1,7 +1,7 @@
 import { InputAccumalator } from "./input.js";
 import { Point } from "./common.js";
 import { SpriteMap } from "./sprite.js";
-import { LayeredWorld } from "./layered-canvas-world.js";
+import { LayeredWorld } from "./layered-world.js";
 import { Layer } from "./layer.js";
 import { WorldConfig } from "./world";
 
