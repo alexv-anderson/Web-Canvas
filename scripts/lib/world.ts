@@ -1,5 +1,5 @@
 
-import { loadJSON } from "./general.js";
+import { loadJSON } from "./web-loaders.js";
 
 /**
  * Represents a point in 2D Cartesian space
