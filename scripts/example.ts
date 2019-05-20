@@ -1,5 +1,4 @@
-import { LayeredSpriteWorldConfig, ActorConfig } from "./lib/layered-sprite-canvas-world-interface.js";
-import { Actor, SpriteWorld, SpriteLayer } from "./lib/layered-sprite-canvas-world.js";
+import { LayeredSpriteWorldConfig, ActorConfig, Actor, SpriteWorld, SpriteLayer } from "./lib/layered-sprite-canvas-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { Point } from "./lib/common.js";
 

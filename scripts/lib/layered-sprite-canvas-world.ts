@@ -1,9 +1,9 @@
-import { ActorConfig, LayerConfig, LayeredSpriteWorldConfig } from "./layered-sprite-canvas-world-interface.js";
 import { InputAccumalator } from "./input.js";
 import { Point } from "./common.js";
 import { SpriteMap } from "./sprite.js";
 import { LayeredWorld } from "./layered-canvas-world.js";
 import { Layer } from "./layer.js";
+import { WorldConfig } from "./world";
 
 /**
  * Represents a layer of sprites which for the background/floor
@@ -111,6 +111,21 @@ export abstract class Actor<IA extends InputAccumalator> {
     private location: Point;
     private spriteIndex: number;
     private spriteKeys: Array<string>;
+}
+
+export type LayerConfig = { [key in string]: Array<Array<number>> };
+
+export type ActorConfig = {
+    location: Array<number>,
+    isi: number,
+    sprites: Array<string>
+}
+
+export interface LayeredSpriteWorldConfig extends WorldConfig {
+    layers: Array<LayerConfig>,
+    actorConfigs?: {
+        [key in string]: [ActorConfig]
+    }
 }
 
 /**
