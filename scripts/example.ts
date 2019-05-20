@@ -1,7 +1,7 @@
 import { LayeredSpriteWorldConfig, ActorConfig } from "./lib/layered-sprite-canvas-world-interface.js";
 import { Actor, SpriteWorld, SpriteLayer } from "./lib/layered-sprite-canvas-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
-import { Point } from "./lib/world.js";
+import { Point } from "./lib/common.js";
 
 /*
  * Only things which need to be implemented to create a new canvas world.

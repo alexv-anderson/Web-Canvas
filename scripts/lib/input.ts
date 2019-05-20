@@ -1,4 +1,4 @@
-import { Point } from "./world.js";
+import { Point } from "./common.js";
 
 /**
  * Collects input from the user
