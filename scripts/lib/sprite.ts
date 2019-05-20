@@ -11,6 +11,10 @@ interface SpriteSheetSource {
 }
 interface MultispriteSheetDescription {
     fileName: string,
+    defaultSpriteProperties?: {
+        frameHeight?: number,
+        frameWidth?: number
+    }
     sprites: Array<SpriteDescription>
 }
 interface MonospriteSheetDescription extends SpriteDescription {
@@ -20,8 +24,8 @@ interface SpriteDescription extends SpriteProperties {
     key: string,
 }
 interface SpriteProperties {
-    frameHeight: number,
-    frameWidth: number,
+    frameHeight?: number,
+    frameWidth?: number,
 
     numberOfFrames?: number,
     fps?: number,
@@ -71,8 +75,8 @@ export class Sprite {
         this._frameWidth = image.width;
 
         if(options !== undefined) {
-            this._frameHeight = options.frameHeight;
-            this._frameWidth = options.frameWidth;
+            this._frameHeight = options.frameHeight || this._frameHeight;
+            this._frameWidth = options.frameWidth || this._frameWidth;
 
             this.numberOfFrames = options.numberOfFrames || this.numberOfFrames;
             this.framesPerSecond = options.fps;
@@ -223,8 +227,19 @@ export class SpriteMap {
         sss.sheets.forEach((sheet) => {
             // Load the image file
             loadPNG(sss.baseURL + sheet.fileName, (image) => {
+                
+                let defaults = sheet.defaultSpriteProperties;
                 // For each sprite in the sheet
                 sheet.sprites.forEach(spriteDescription => {
+                    if(defaults) {
+                        if(spriteDescription.frameHeight === undefined && defaults.frameHeight) {
+                            spriteDescription.frameHeight = defaults.frameHeight;
+                        }
+                        if(spriteDescription.frameWidth === undefined && defaults.frameWidth) {
+                            spriteDescription.frameWidth = defaults.frameWidth;
+                        }
+                    }
+                    
                     // Add the sprite to the map
                     this.addSprite(
                         spriteDescription.key,

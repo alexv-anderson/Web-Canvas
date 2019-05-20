@@ -39,22 +39,25 @@ Sprites resources are specified in a sprite configuration JSON file similar to t
   - `baseURL` is the URL of the source
   - `sheets` is a list of images which contain multiple sprites
     - `fileName` is the image's file path from the `baseURL`
+    - `defaultSpriteProperties` _(Optional)_ specifies default values for properties of the sprites in the sheet
+        -  `frameHeight` _(Optional)_ is the default height _(in pixels)_ of the sprites in the sheet
+        - `frameWidth` _(Optional)_ is the default width _(in pixels)_ of the sprites in the sheet
     - `sprites` is a list of the sprites in the file
       - `key` the key by which the sprite will be refered to in the world configuration file and the library's API.
-      - `frameHeight` is the height of the sprite in pixels
-      - `frameWidth` is the width of the sprite in pixels
-      - `numberOfFrames` _(Optional)_ is the number of times which the sprite's frame repeats in the sheet
-      - `isHorizontal` _(Optional)_ is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically
+      - `frameHeight` _(Optional)_ is the height of the sprite in pixels. If no default is given, then the height will be the height of the sheet.
+      - `frameWidth` _(Optional)_ is the width of the sprite in pixels. If no default is given, then the width will be the width of the sheet.
+      - `numberOfFrames` _(Optional)_ is the number of times which the sprite's frame repeats in the sheet. Default value is `1`.
+      - `isHorizontal` _(Optional)_ is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically. Default value is `true`.
       - `fps` _(Optional)_ is the number of frames which should be shown in a single second
-      - `sourceX` _(Optional)_ The x-coordinate of the sprite in the image
-      - `sourceY` _(Optional)_ The y-coordinate of the sprite in the image
+      - `sourceX` _(Optional)_ The x-coordinate of the sprite in the image. Default value is `0`.
+      - `sourceY` _(Optional)_ The y-coordinate of the sprite in the image. Default value is `0`.
   - `singles` is a list of images which contain a single sprite
     - `fileName` is the image's file path from the `baseURL`
     - `key` the key by which the sprite will be refered to in the world configuration file and the library's API.
-    - `frameHeight` is the height of the sprite in pixels
-    - `frameWidth` is the width of the sprite in pixels
-    - `numberOfFrames` _(Optional)_ is the number of times which the sprite's frame repeats in the sheet
-    - `isHorizontal` _(Optional)_ is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically
+    - `frameHeight` _(Optional)_ is the height of the sprite in pixels. Default value is the height of the image.
+    - `frameWidth` _(Optional)_ is the width of the sprite in pixels. Default value is the width of the image.
+    - `numberOfFrames` _(Optional)_ is the number of times which the sprite's frame repeats in the sheet. Default value is `1`.
+    - `isHorizontal` _(Optional)_ is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically. Default value is `true`.
     - `fps` _(Optional)_ is the number of frames which should be shown in a single second
 
 ## World
