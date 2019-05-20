@@ -1,13 +1,14 @@
 import { LayeredSpriteWorldConfig, ActorConfig } from "./lib/layered-sprite-canvas-world-interface.js";
 import { Actor, SpriteWorld, SpriteLayer } from "./lib/layered-sprite-canvas-world.js";
-import { InputAccumalator, Point } from "./lib/base-canvas-world.js";
+import { SimpleInputAccumalator } from "./lib/input.js"
+import { Point } from "./lib/world.js";
 
 /*
  * Only things which need to be implemented to create a new canvas world.
  */
 
-export class Soldier extends Actor {
-    public update(inputAccumalator: InputAccumalator): void {
+export class Soldier extends Actor<SimpleInputAccumalator> {
+    public update(inputAccumalator: SimpleInputAccumalator): void {
         let dx: number = 0;
         let dy: number = 0;
 
@@ -28,11 +29,11 @@ export class Soldier extends Actor {
     }
 }
 
-class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, InputAccumalator> {
+class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, SimpleInputAccumalator> {
     constructor(canvas: HTMLCanvasElement, configURL: string, spriteMapURL: string) {
         super(canvas, configURL, spriteMapURL);
 
-        this.ia = new InputAccumalator(canvas);
+        this.ia = new SimpleInputAccumalator(canvas);
     }
 
     protected onConfigurationLoaded(config: LayeredSpriteWorldConfig): void {
@@ -48,7 +49,7 @@ class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, InputAccumalator> {
         sl1.addSquareFor("rsl", 1, 0);
     }
 
-    protected constructActorAt(key: string, actorConfig: ActorConfig): Actor | never {
+    protected constructActorAt(key: string, actorConfig: ActorConfig): Actor<SimpleInputAccumalator> | never {
         if(key === "Soldier") {
             return new Soldier(
                 new Point(actorConfig.location[0], actorConfig.location[1]),
@@ -60,30 +61,30 @@ class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, InputAccumalator> {
         return super.constructActorAt(key, actorConfig);
     }
 
-    public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
-        super.onUpdate(dt, inputAccumalator);
+    public onUpdate(dt: number): void {
+        super.onUpdate(dt);
         
-        if(inputAccumalator.mouseDown && inputAccumalator.mouseDownPoint) {
+        if(this.inputAccumalator.mouseDown && this.inputAccumalator.mouseDownPoint) {
             if(this.lastClickPoint) {
                 this.addLine(
                     this.lastClickPoint.x,
                     this.lastClickPoint.y,
-                    inputAccumalator.mouseDownPoint.x,
-                    inputAccumalator.mouseDownPoint.y,
+                    this.inputAccumalator.mouseDownPoint.x,
+                    this.inputAccumalator.mouseDownPoint.y,
                     "red",
                     2
                 )
             }
 
-            this.lastClickPoint = inputAccumalator.mouseDownPoint;
+            this.lastClickPoint = this.inputAccumalator.mouseDownPoint;
         }
     }
 
-    protected get inputAccumalator(): InputAccumalator {
+    protected get inputAccumalator(): SimpleInputAccumalator {
         return this.ia;
     }
 
-    private ia: InputAccumalator;
+    private ia: SimpleInputAccumalator;
 
     private lastClickPoint: Point;
 }

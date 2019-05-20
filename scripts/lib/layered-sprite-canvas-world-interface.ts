@@ -1,4 +1,4 @@
-import { WorldConfig } from "./base-canvas-world.js";
+import { WorldConfig } from "./world.js";
 
 export type LayerConfig = { [key in string]: Array<Array<number>> };
 

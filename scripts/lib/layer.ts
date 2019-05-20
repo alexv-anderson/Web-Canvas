@@ -2,6 +2,8 @@
  * Represents a layer of sprites which for the background/floor
  */
 export interface Layer {
+    update(dt: number): void;
+    
     /**
      * Renders the layer on the supplied canvas
      * @param context The rendering context of the canvas on which the layer should be rendered

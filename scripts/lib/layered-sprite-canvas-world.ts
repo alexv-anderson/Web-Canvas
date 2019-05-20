@@ -1,5 +1,6 @@
 import { ActorConfig, LayerConfig, LayeredSpriteWorldConfig } from "./layered-sprite-canvas-world-interface.js";
-import { InputAccumalator, Point } from "./base-canvas-world.js";
+import { InputAccumalator } from "./input.js";
+import { Point } from "./world.js";
 import { SpriteMap } from "./sprite.js";
 import { LayeredWorld } from "./layered-canvas-world.js";
 import { Layer } from "./layer.js";
@@ -15,6 +16,10 @@ export class SpriteLayer implements Layer {
     constructor(grid: LayerConfig, spriteMap: SpriteMap) {
         this.grid = grid;
         this.spriteMap = spriteMap;
+    }
+
+    public update(dt: number): void {
+
     }
 
     /**
@@ -61,7 +66,7 @@ export class SpriteLayer implements Layer {
 /**
  * Represents something at can move due to user input on the canvas
  */
-export abstract class Actor {
+export abstract class Actor<IA extends InputAccumalator> {
 
     /**
      * Initializes the actor
@@ -69,11 +74,7 @@ export abstract class Actor {
      * @param spriteIndex The index of the actor's initial sprite
      * @param sprites An array of the actor's sprites
      */
-    constructor(
-        location: Point,
-        spriteIndex: number,
-        sprites: Array<string>
-    ) {
+    constructor(location: Point, spriteIndex: number, sprites: Array<string>) {
         this.location = location;
         this.spriteIndex = spriteIndex;
         this.spriteKeys = sprites;
@@ -83,7 +84,7 @@ export abstract class Actor {
      * Updates the actor using input from the user
      * @param inputAccumalator Input which has been supplied by the user
      */
-    public abstract update(inputAccumalator: InputAccumalator): void;
+    public abstract update(inputAccumalator: IA): void;
 
     /**
      * Renders the actor on the canvas
@@ -115,7 +116,7 @@ export abstract class Actor {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends InputAccumalator> extends LayeredWorld<C, IA> {
+export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends InputAccumalator> extends LayeredWorld<C> {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world will be drawn
@@ -141,15 +142,19 @@ export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends
         config.layers.forEach((lc: LayerConfig) => { this.addLayer(new SpriteLayer(lc, this.spriteMap)); });        
     }
 
-    protected constructActorAt(key: string, actorConfig: ActorConfig): Actor {
+    protected constructActorAt(key: string, actorConfig: ActorConfig): Actor<IA> | never {
         throw new Error("No matching sprite for " + key);
     }
 
-    public onUpdate(dt: number, inputAccumalator: InputAccumalator): void {
+    public onUpdate(dt: number): void {
+        super.onUpdate(dt);
+
         this.spriteMap.updateAllSprites(dt);
 
-        this.actors.forEach((actor: Actor) => { actor.update(inputAccumalator); })
+        this.actors.forEach((actor: Actor<IA>) => { actor.update(this.inputAccumalator); })
     }
+
+    protected abstract get inputAccumalator(): IA;
 
     /**
      * Renders the world on the given canvas
@@ -163,7 +168,7 @@ export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends
             as.center
         )});
 
-        this.actors.forEach((actor: Actor) => { actor.render(this.spriteMap, this.drawingContext); });
+        this.actors.forEach((actor: Actor<IA>) => { actor.render(this.spriteMap, this.drawingContext); });
     }
 
     /**
@@ -182,5 +187,5 @@ export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends
 
     private spriteMap: SpriteMap = new SpriteMap();
 
-    private actors: Array<Actor> = [];
+    private actors: Array<Actor<IA>> = [];
 }

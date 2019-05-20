@@ -37,101 +37,6 @@ export class Point {
     private _y: number;
 }
 
-/**
- * Collects input from the user
- */
-export class InputAccumalator {
-    /**
-     * Initializes the accumalator
-     * @param canvas The canvas from which click events should be collected
-     */
-    constructor(canvas: HTMLCanvasElement) {
-        document.addEventListener("mousedown", (event: MouseEvent) => {
-            let rect = canvas.getBoundingClientRect();
-
-            let clickPoint = new Point(
-                event.clientX - rect.left,
-                event.clientY - rect.top
-            );
-
-            if(clickPoint.x >= 0 && clickPoint.x <= canvas.width &&
-                clickPoint.y >= 0 && clickPoint.y <= canvas.height) {
-                this._mouseDownPoint = clickPoint;
-            }
-        });
-
-        document.addEventListener("keydown", (event: KeyboardEvent) => {
-            if(event.keyCode == 38)
-                this._arrowUpDown = true;    // Go up
-            else if(event.keyCode == 40)
-                this._arrowDownDown = true;    // Go down
-            else if(event.keyCode == 37)
-                this._arrowLeftDown = true;    // Go left
-            else if(event.keyCode == 39)
-                this._arrowRightDown = true;    // Go right
-        });
-
-        this.reset();
-    }
-
-    /**
-     * Flag indicating if the mousedown event has occurred on the canvase
-     */
-    public get mouseDown(): boolean {
-        return this._mouseDownPoint !== undefined;
-    }
-    /**
-     * The point on the canvas relative to its top-left corner at which the mousedown event occurred
-     */
-    public get mouseDownPoint(): Point | undefined {
-        return this._mouseDownPoint;
-    }
-
-    /**
-     * Flag indicating if the up arrow was pressed
-     */
-    public get arrowUpDown(): boolean {
-        return this._arrowUpDown;
-    }
-    /**
-     * Flag indicating if the down arrow was pressed
-     */
-    public get arrowDownDown(): boolean {
-        return this._arrowDownDown;
-    }
-    /**
-     * Flag indicating if the left arrow was pressed
-     */
-    public get arrowLeftDown(): boolean {
-        return this._arrowLeftDown;
-    }
-    /**
-     * Flag indicating if the right arrow was pressed
-     */
-    public get arrowRightDown(): boolean {
-        return this._arrowRightDown;
-    }
-
-    /**
-     * Resets all of the data
-     */
-    public reset(): void {
-        this._mouseDownPoint = undefined;
-
-        this._arrowUpDown = false;
-        this._arrowDownDown = false;
-        this._arrowLeftDown = false;
-        this._arrowRightDown = false;
-    }
-
-    private _mouseDownPoint?: Point;
-
-    private _arrowUpDown: boolean;
-    private _arrowDownDown: boolean;
-    private _arrowLeftDown: boolean;
-    private _arrowRightDown: boolean;
-}
-
 export interface WorldConfig {
     view: {
         width: number,
@@ -142,7 +47,7 @@ export interface WorldConfig {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class World<C extends WorldConfig, IA extends InputAccumalator> {
+export abstract class World<C extends WorldConfig> {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world should be drawn
@@ -150,11 +55,7 @@ export abstract class World<C extends WorldConfig, IA extends InputAccumalator> 
     constructor(canvas: HTMLCanvasElement, configURL: string) {
         this.setCanvas(canvas);
 
-        loadJSON(configURL, (config: C) => {
-            this.canvas.width = config.view.width;
-            this.canvas.height = config.view.height;
-            this.onConfigurationLoaded(config);
-        });
+        loadJSON(configURL, (config: C) => this.onConfigurationLoaded(config));
     }
 
     /**
@@ -183,9 +84,7 @@ export abstract class World<C extends WorldConfig, IA extends InputAccumalator> 
 
         this.context.clearRect(0, 0, this.viewWidth, this.viewHeight);
 
-        this.onUpdate(dt, this.inputAccumalator);
-
-        this.inputAccumalator.reset();
+        this.onUpdate(dt);
     }
 
     /**
@@ -193,14 +92,14 @@ export abstract class World<C extends WorldConfig, IA extends InputAccumalator> 
      * @param dt Number of milliseconds which have passed since the last time this method was called
      * @param inputAccumalator Input collected from the user
      */
-    public abstract onUpdate(dt: number, inputAccumalator: InputAccumalator): void;
+    public onUpdate(dt: number): void {
+        
+    }
 
-    protected abstract onConfigurationLoaded(config: C): void;
-
-    /**
-     * Gets the input accumalator for this world
-     */
-    protected abstract get inputAccumalator(): IA;
+    protected onConfigurationLoaded(config: C): void {
+        this.canvas.width = config.view.width;
+        this.canvas.height = config.view.height;
+    }
 
     /**
      * Renders the world

@@ -1,14 +1,22 @@
 
-import { World, WorldConfig, InputAccumalator } from "./base-canvas-world.js";
+import { World, WorldConfig } from "./world.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
 /**
  * Reperesents everything on the canvas
  */
-export abstract class LayeredWorld<C extends WorldConfig, IA extends InputAccumalator> extends World<C, IA> {
+export abstract class LayeredWorld<C extends WorldConfig> extends World<C> {
 
     protected onConfigurationLoaded(config: C): void {
+        super.onConfigurationLoaded(config);
+    }
+
+    public onUpdate(dt: number) {
+        super.onUpdate(dt);
         
+        for(let i = 0; i < this.layout.depth; i++) {
+            this.layout.getLayer(i).update(dt);
+        }
     }
 
     /**
