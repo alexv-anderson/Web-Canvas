@@ -13,7 +13,11 @@ export interface LayerConfig {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class LayeredWorld<C extends LayeredWorldConfig<LC>, LC extends LayerConfig> extends World<C> {
+export abstract class LayeredWorld<
+    C extends LayeredWorldConfig<LC>,
+    L extends Layer,
+    LC extends LayerConfig
+    > extends World<C> {
 
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
@@ -49,7 +53,7 @@ export abstract class LayeredWorld<C extends LayeredWorldConfig<LC>, LC extends 
      * Adds a layer to the top of the world's stack of layers
      * @param layer The layer to be added
      */
-    protected addLayer(layer: Layer) {
+    protected addLayer(layer: L) {
         this.layout.addLayer(layer);
     }
 
@@ -57,9 +61,9 @@ export abstract class LayeredWorld<C extends LayeredWorldConfig<LC>, LC extends 
         return this.layout.depth;
     }
 
-    protected getLayerAtIndex(index: number): Layer {
+    protected getLayerAtIndex(index: number): L {
         return this.layout.getLayer(index);
     }
 
-    private layout: LayeredLayout = new LayeredLayout();
+    private layout: LayeredLayout<L> = new LayeredLayout<L>();
 }

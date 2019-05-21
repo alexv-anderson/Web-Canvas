@@ -14,12 +14,12 @@ export interface Layer {
 /**
  * Represents a list of layers
  */
-export class LayeredLayout {
+export class LayeredLayout<L extends Layer> {
     /**
      * Adds a layer on top of the existing layers
      * @param layer The layer to be placed at the top of the list
      */
-    public addLayer(layer: Layer): void {
+    public addLayer(layer: L): void {
         this.layers.push(layer);
     }
 
@@ -29,7 +29,7 @@ export class LayeredLayout {
      * Note: the lowest layer has an index of 0
      * @param index The index of the desired layer
      */
-    public getLayer(index: number): Layer {
+    public getLayer(index: number): L {
         return this.layers[index];
     }
 
@@ -48,5 +48,5 @@ export class LayeredLayout {
         this.layers.forEach((layer: Layer) => { layer.render(context); });
     }
 
-    private layers: Array<Layer> = [];
+    private layers: Array<L> = [];
 }

@@ -1,4 +1,4 @@
-import { InputAccumalator } from "./input.js";
+import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point } from "./common.js";
 import { SpriteConfig, SpriteMap } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
@@ -114,13 +114,13 @@ export abstract class Actor<IA extends InputAccumalator> {
 
 export interface SpriteLayerConfig extends LayerConfig { [key: string]: Array<Array<number>> };
 
-export type ActorConfig = {
+export interface ActorConfig {
     location: Array<number>,
     isi: number,
     sprites: Array<string>
 }
 
-export interface LayeredSpriteWorldConfig extends LayeredWorldConfig<SpriteLayerConfig>, SpriteConfig {
+export interface LayeredSpriteWorldConfig<SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC>, SpriteConfig {
     actorConfigs?: {
         [key: string]: [ActorConfig]
     }
@@ -129,7 +129,13 @@ export interface LayeredSpriteWorldConfig extends LayeredWorldConfig<SpriteLayer
 /**
  * Reperesents everything on the canvas
  */
-export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends InputAccumalator> extends LayeredWorld<C, SpriteLayerConfig> {
+export abstract class GenericPureSpriteWorld<
+    C extends LayeredSpriteWorldConfig<SLC>,
+    IA extends InputAccumalator,
+    SL extends SpriteLayer,
+    SLC extends SpriteLayerConfig
+    > extends LayeredWorld<C, SL, SLC> {
+    
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
 
@@ -143,11 +149,13 @@ export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends
         config.spriteSources.forEach(spriteSource => this.spriteMap.loadSpriteSource(spriteSource));
     }
 
-    protected onLayerConfigurationLoaded(config: SpriteLayerConfig): void {
+    protected onLayerConfigurationLoaded(config: SLC): void {
         super.onLayerConfigurationLoaded(config);
 
-        this.addLayer(new SpriteLayer(config, this.spriteMap));
+        this.addLayer(this.constructSpriteLayer(config, this.spriteMap));
     }
+
+    protected abstract constructSpriteLayer(config: SpriteLayerConfig, spriteMap: SpriteMap): SL;
 
     protected constructActorAt(key: string, actorConfig: ActorConfig): Actor<IA> | never {
         throw new Error("No matching sprite for " + key);
@@ -195,4 +203,22 @@ export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends
     private spriteMap: SpriteMap = new SpriteMap();
 
     private actors: Array<Actor<IA>> = [];
+}
+
+export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<LayeredSpriteWorldConfig<SpriteLayerConfig>, SimpleInputAccumalator, SpriteLayer, SpriteLayerConfig> {
+    constructor(canvas: HTMLCanvasElement, configURL: string) {
+        super(canvas, configURL);
+
+        this.ia = new SimpleInputAccumalator(canvas);
+    }
+
+    protected constructSpriteLayer(config: SpriteLayerConfig, spriteMap: SpriteMap): SpriteLayer {
+        return new SpriteLayer(config, spriteMap);
+    }
+
+    protected get inputAccumalator(): SimpleInputAccumalator {
+        return this.ia;
+    }
+
+    private ia: SimpleInputAccumalator;
 }

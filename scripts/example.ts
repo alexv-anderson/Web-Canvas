@@ -1,4 +1,4 @@
-import { LayeredSpriteWorldConfig, ActorConfig, Actor, SpriteWorld, SpriteLayer } from "./lib/layered-sprite-world.js";
+import { LayeredSpriteWorldConfig, ActorConfig, Actor, SimpleSpriteWorld, SpriteLayer, SpriteLayerConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { Point } from "./lib/common.js";
 
@@ -28,14 +28,8 @@ export class Soldier extends Actor<SimpleInputAccumalator> {
     }
 }
 
-class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, SimpleInputAccumalator> {
-    constructor(canvas: HTMLCanvasElement, configURL: string) {
-        super(canvas, configURL);
-
-        this.ia = new SimpleInputAccumalator(canvas);
-    }
-
-    protected onConfigurationLoaded(config: LayeredSpriteWorldConfig): void {
+class MyWorld extends SimpleSpriteWorld {
+    protected onConfigurationLoaded(config: LayeredSpriteWorldConfig<SpriteLayerConfig>): void {
         super.onConfigurationLoaded(config);
 
         let sl0 = this.getLayerAtIndex(0) as SpriteLayer;
@@ -78,12 +72,6 @@ class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, SimpleInputAccumalat
             this.lastClickPoint = this.inputAccumalator.mouseDownPoint;
         }
     }
-
-    protected get inputAccumalator(): SimpleInputAccumalator {
-        return this.ia;
-    }
-
-    private ia: SimpleInputAccumalator;
 
     private lastClickPoint: Point;
 }

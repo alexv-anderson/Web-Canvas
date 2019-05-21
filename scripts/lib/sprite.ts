@@ -1,5 +1,5 @@
 
-import { loadJSON, loadPNG } from "./web-loaders.js";
+import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
     spriteSources: Array<SpriteSheetSource>
