@@ -4,10 +4,6 @@ import { SpriteConfig, SpriteMap } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Layer } from "./layer.js";
 
-/**
- * Represents the configuration for a sprite layer. In a sprite layer the keys
- * of the object are the key in the Sprite Map
- */
 export interface SpriteMultilayerLayoutConfig<SLC extends SpriteLayerConfig, SMLCD extends SpriteMultilayerLayoutConfigDefaults> extends LayerConfig {
     defaults?: SMLCD,
     layers: [SLC]
@@ -253,14 +249,22 @@ export abstract class GenericPureSpriteWorld<
     private actors: Array<Actor<IA>> = [];
 }
 
+export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
+
+}
+
+export interface SimpleSpriteMultilayerLayoutConfig extends SpriteMultilayerLayoutConfig<SpriteLayerConfig, SpriteMultilayerLayoutConfigDefaults> {
+
+}
+
 /**
  * Use the simple configuration which should work in most cases
  */
 export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
-    LayeredSpriteWorldConfig<SpriteMultilayerLayoutConfig<SpriteLayerConfig, SpriteMultilayerLayoutConfigDefaults>, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig>,
+    SimpleMultilayeredSpriteWorldConfig,
     SimpleInputAccumalator,
     SpriteLayer,
-    SpriteMultilayerLayoutConfig<SpriteLayerConfig, SpriteMultilayerLayoutConfigDefaults>,
+    SimpleSpriteMultilayerLayoutConfig,
     SpriteMultilayerLayoutConfigDefaults,
     SpriteLayerConfig> {
     constructor(canvas: HTMLCanvasElement, configURL: string) {

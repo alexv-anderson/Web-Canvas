@@ -1,4 +1,4 @@
-import { LayeredSpriteWorldConfig, ActorConfig, Actor, SimpleSpriteWorld, SpriteLayer, SpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig } from "./lib/layered-sprite-world.js";
+import { ActorConfig, Actor, SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { Point } from "./lib/common.js";
 
@@ -29,16 +29,16 @@ export class Soldier extends Actor<SimpleInputAccumalator> {
 }
 
 class MyWorld extends SimpleSpriteWorld {
-    protected onConfigurationLoaded(config: LayeredSpriteWorldConfig<SpriteMultilayerLayoutConfig<SpriteLayerConfig, SpriteMultilayerLayoutConfigDefaults>, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig>): void {
+    protected onConfigurationLoaded(config: SimpleMultilayeredSpriteWorldConfig): void {
         super.onConfigurationLoaded(config);
 
-        let sl0 = this.getLayerAtIndex(0) as SpriteLayer;
+        let sl0 = this.getLayerAtIndex(0);
         let sqrs = sl0.getSquaresFor("wr");
         if(sqrs) {
             sqrs.pop();    
         }
 
-        let sl1 = this.getLayerAtIndex(1) as SpriteLayer;
+        let sl1 = this.getLayerAtIndex(1);
         sl1.addSquareFor("rsl", 1, 0);
     }
 
