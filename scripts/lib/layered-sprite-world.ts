@@ -5,6 +5,14 @@ import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.j
 import { Layer } from "./layer.js";
 
 /**
+ * Represents the configuration for a sprite layer. In a sprite layer the keys
+ * of the object are the key in the Sprite Map
+ */
+export interface SpriteLayerConfig extends LayerConfig {
+    [key: string]: Array<Array<number>>
+};
+
+/**
  * Represents a layer of sprites which for the background/floor
  */
 export class SpriteLayer implements Layer {
@@ -63,6 +71,15 @@ export class SpriteLayer implements Layer {
 }
 
 /**
+ * Represtnes the configuration for an actor which is represented by sprites
+ */
+export interface ActorConfig {
+    location: Array<number>,
+    isi: number,
+    sprites: Array<string>
+}
+
+/**
  * Represents something at can move due to user input on the canvas
  */
 export abstract class Actor<IA extends InputAccumalator> {
@@ -112,14 +129,9 @@ export abstract class Actor<IA extends InputAccumalator> {
     private spriteKeys: Array<string>;
 }
 
-export interface SpriteLayerConfig extends LayerConfig { [key: string]: Array<Array<number>> };
-
-export interface ActorConfig {
-    location: Array<number>,
-    isi: number,
-    sprites: Array<string>
-}
-
+/**
+ * Represents the configuration of a world with sprite layers an possibily Actors
+ */
 export interface LayeredSpriteWorldConfig<SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC>, SpriteConfig {
     actorConfigs?: {
         [key: string]: [ActorConfig]
@@ -127,7 +139,7 @@ export interface LayeredSpriteWorldConfig<SLC extends SpriteLayerConfig> extends
 }
 
 /**
- * Reperesents everything on the canvas
+ * Generic reperesentation of a world which is composed completely of sprites.
  */
 export abstract class GenericPureSpriteWorld<
     C extends LayeredSpriteWorldConfig<SLC>,
@@ -205,6 +217,9 @@ export abstract class GenericPureSpriteWorld<
     private actors: Array<Actor<IA>> = [];
 }
 
+/**
+ * Use the simple configuration which should work in most cases
+ */
 export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<LayeredSpriteWorldConfig<SpriteLayerConfig>, SimpleInputAccumalator, SpriteLayer, SpriteLayerConfig> {
     constructor(canvas: HTMLCanvasElement, configURL: string) {
         super(canvas, configURL);
