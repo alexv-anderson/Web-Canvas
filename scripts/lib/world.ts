@@ -56,7 +56,7 @@ export abstract class World<C extends WorldConfig> {
      * @param dt Number of milliseconds which have passed since the last time this method was called
      * @param inputAccumalator Input collected from the user
      */
-    public onUpdate(dt: number): void {
+    protected onUpdate(dt: number): void {
         
     }
 

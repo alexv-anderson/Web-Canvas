@@ -173,7 +173,7 @@ export abstract class GenericPureSpriteWorld<
         throw new Error("No matching sprite for " + key);
     }
 
-    public onUpdate(dt: number): void {
+    protected onUpdate(dt: number): void {
         super.onUpdate(dt);
 
         this.spriteMap.updateAllSprites(dt);
@@ -229,6 +229,10 @@ export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<LayeredSp
 
     protected constructSpriteLayer(config: SpriteLayerConfig, spriteMap: SpriteMap): SpriteLayer {
         return new SpriteLayer(config, spriteMap);
+    }
+
+    protected onUpdate(dt: number) {
+        super.onUpdate(dt);
     }
 
     protected get inputAccumalator(): SimpleInputAccumalator {

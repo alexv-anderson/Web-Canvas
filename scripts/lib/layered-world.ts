@@ -29,7 +29,7 @@ export abstract class LayeredWorld<
 
     }
 
-    public onUpdate(dt: number) {
+    protected onUpdate(dt: number) {
         super.onUpdate(dt);
         
         for(let i = 0; i < this.layout.depth; i++) {
