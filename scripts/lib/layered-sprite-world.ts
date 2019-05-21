@@ -8,9 +8,26 @@ import { Layer } from "./layer.js";
  * Represents the configuration for a sprite layer. In a sprite layer the keys
  * of the object are the key in the Sprite Map
  */
-export interface SpriteLayerConfig extends LayerConfig {
-    [key: string]: Array<Array<number>>
+export interface SpriteMultilayerLayoutConfig<SLC extends SpriteLayerConfig, SMLCD extends SpriteMultilayerLayoutConfigDefaults> extends LayerConfig {
+    defaults?: SMLCD,
+    layers: [SLC]
 };
+
+export interface SpriteMultilayerLayoutConfigDefaults {
+    stepHeight?: number
+    stepWidth?: number
+}
+
+export interface SpriteLayerConfig {
+    step?: {
+        height?: number,
+        width?: number
+    },
+    sprites: SpriteLayerLocations
+}
+interface SpriteLayerLocations {
+    [key: string]: Array<Array<number>>
+}
 
 /**
  * Represents a layer of sprites which for the background/floor
@@ -18,10 +35,19 @@ export interface SpriteLayerConfig extends LayerConfig {
 export class SpriteLayer implements Layer {
     /**
      * Initializes the layer
-     * @param grid The configuration for the layer
+     * @param config The configuration for the layer
      */
-    constructor(grid: SpriteLayerConfig, spriteMap: SpriteMap) {
-        this.grid = grid;
+    constructor(config: SpriteLayerConfig, spriteMap: SpriteMap) {
+        this._sprites = config.sprites;
+
+        this._stepHeight = 32;
+        this._stepWidth = 32;
+
+        if(config.step) {
+            this._stepHeight = config.step.height || this._stepHeight;
+            this._stepWidth = config.step.width || this._stepWidth;
+        }
+
         this.spriteMap = spriteMap;
     }
 
@@ -34,16 +60,22 @@ export class SpriteLayer implements Layer {
      * @param context The rendering context of the canvas on which the layer should be rendered
      */
     public render(context: CanvasRenderingContext2D): void {
-        for(let key in this.grid) {
-            let pairs = this.grid[key];
+        let xScale = this._stepWidth;
+        let xOffset = this._stepWidth / 2;
+
+        let yScale = this._stepHeight;
+        let yOffset = this._stepHeight / 2;
+
+        for(let key in this._sprites) {
+            let pairs = this._sprites[key];
             for(let pairIndex = 0; pairIndex < pairs.length; pairIndex++) {
                 let pair = pairs[pairIndex];
                 this.spriteMap.render(
                     context,
                     key,
                     new Point(
-                        (pair[1] * 32) + 16,
-                        (pair[0] * 32) + 16
+                        (pair[1] * xScale) + xOffset,   // which column
+                        (pair[0] * yScale) + yOffset    // which row
                     )
                 )
             }
@@ -51,22 +83,24 @@ export class SpriteLayer implements Layer {
     }
 
     public addSquareFor(spriteKey: string, row: number, column: number): void {
-        if(this.grid[spriteKey] === undefined) {
-            this.grid[spriteKey] = [];
+        if(this._sprites[spriteKey] === undefined) {
+            this._sprites[spriteKey] = [];
         }
 
-        this.grid[spriteKey].push([row, column]);
+        this._sprites[spriteKey].push([row, column]);
     }
 
     public getSquaresFor(spriteKey: string): Array<Array<number>> | undefined {
-        return this.grid[spriteKey];
+        return this._sprites[spriteKey];
     }
 
     public removeAllSpriteSquares(spriteKey: string): void {
-        delete this.grid[spriteKey];
+        delete this._sprites[spriteKey];
     }
 
-    private grid: SpriteLayerConfig;
+    private _sprites: SpriteLayerLocations;
+    private _stepHeight: number;
+    private _stepWidth: number;
     private spriteMap: SpriteMap;
 }
 
@@ -132,7 +166,7 @@ export abstract class Actor<IA extends InputAccumalator> {
 /**
  * Represents the configuration of a world with sprite layers an possibily Actors
  */
-export interface LayeredSpriteWorldConfig<SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC>, SpriteConfig {
+export interface LayeredSpriteWorldConfig<SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>, SMLCD extends SpriteMultilayerLayoutConfigDefaults, SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SMLC>, SpriteConfig {
     actorConfigs?: {
         [key: string]: [ActorConfig]
     }
@@ -142,11 +176,13 @@ export interface LayeredSpriteWorldConfig<SLC extends SpriteLayerConfig> extends
  * Generic reperesentation of a world which is composed completely of sprites.
  */
 export abstract class GenericPureSpriteWorld<
-    C extends LayeredSpriteWorldConfig<SLC>,
+    C extends LayeredSpriteWorldConfig<SMLC, SMLCD, SLC>,
     IA extends InputAccumalator,
     SL extends SpriteLayer,
+    SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
+    SMLCD extends SpriteMultilayerLayoutConfigDefaults,
     SLC extends SpriteLayerConfig
-    > extends LayeredWorld<C, SL, SLC> {
+    > extends LayeredWorld<C, SL, SMLC> {
     
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
@@ -161,13 +197,13 @@ export abstract class GenericPureSpriteWorld<
         config.spriteSources.forEach(spriteSource => this.spriteMap.loadSpriteSource(spriteSource));
     }
 
-    protected onLayerConfigurationLoaded(config: SLC): void {
+    protected onLayerConfigurationLoaded(config: SMLC): void {
         super.onLayerConfigurationLoaded(config);
 
-        this.addLayer(this.constructSpriteLayer(config, this.spriteMap));
+        config.layers.forEach(layerConfig => this.addLayer(this.constructSpriteLayer(layerConfig, this.spriteMap)));
     }
 
-    protected abstract constructSpriteLayer(config: SpriteLayerConfig, spriteMap: SpriteMap): SL;
+    protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;
 
     protected constructActorAt(key: string, actorConfig: ActorConfig): Actor<IA> | never {
         throw new Error("No matching sprite for " + key);
@@ -220,14 +256,32 @@ export abstract class GenericPureSpriteWorld<
 /**
  * Use the simple configuration which should work in most cases
  */
-export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<LayeredSpriteWorldConfig<SpriteLayerConfig>, SimpleInputAccumalator, SpriteLayer, SpriteLayerConfig> {
+export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
+    LayeredSpriteWorldConfig<SpriteMultilayerLayoutConfig<SpriteLayerConfig, SpriteMultilayerLayoutConfigDefaults>, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig>,
+    SimpleInputAccumalator,
+    SpriteLayer,
+    SpriteMultilayerLayoutConfig<SpriteLayerConfig, SpriteMultilayerLayoutConfigDefaults>,
+    SpriteMultilayerLayoutConfigDefaults,
+    SpriteLayerConfig> {
     constructor(canvas: HTMLCanvasElement, configURL: string) {
         super(canvas, configURL);
 
         this.ia = new SimpleInputAccumalator(canvas);
     }
 
-    protected constructSpriteLayer(config: SpriteLayerConfig, spriteMap: SpriteMap): SpriteLayer {
+    protected constructSpriteLayer(config: SpriteLayerConfig, spriteMap: SpriteMap, defaults?: SpriteMultilayerLayoutConfigDefaults): SpriteLayer {
+        if(defaults !== undefined) {
+            if(config.step === undefined) {
+                config.step = {
+                    height: defaults.stepHeight,
+                    width: defaults.stepWidth
+                };
+            } else {
+                config.step.height = config.step.height || defaults.stepHeight;
+                config.step.width = config.step.width || defaults.stepWidth;
+            }
+        }
+
         return new SpriteLayer(config, spriteMap);
     }
 

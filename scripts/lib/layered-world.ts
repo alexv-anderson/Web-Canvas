@@ -3,7 +3,7 @@ import { World, WorldConfig } from "./world.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
 export interface LayeredWorldConfig<LC extends LayerConfig> extends WorldConfig {
-    layers: Array<LC>
+    layers: LC
 }
 
 export interface LayerConfig {
@@ -22,7 +22,7 @@ export abstract class LayeredWorld<
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
 
-        config.layers.forEach(lc => this.onLayerConfigurationLoaded(lc));
+        this.onLayerConfigurationLoaded(config.layers);
     }
 
     protected onLayerConfigurationLoaded(config: LC): void {

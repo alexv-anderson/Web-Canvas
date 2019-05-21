@@ -1,4 +1,4 @@
-import { LayeredSpriteWorldConfig, ActorConfig, Actor, SimpleSpriteWorld, SpriteLayer, SpriteLayerConfig } from "./lib/layered-sprite-world.js";
+import { LayeredSpriteWorldConfig, ActorConfig, Actor, SimpleSpriteWorld, SpriteLayer, SpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { Point } from "./lib/common.js";
 
@@ -29,7 +29,7 @@ export class Soldier extends Actor<SimpleInputAccumalator> {
 }
 
 class MyWorld extends SimpleSpriteWorld {
-    protected onConfigurationLoaded(config: LayeredSpriteWorldConfig<SpriteLayerConfig>): void {
+    protected onConfigurationLoaded(config: LayeredSpriteWorldConfig<SpriteMultilayerLayoutConfig<SpriteLayerConfig, SpriteMultilayerLayoutConfigDefaults>, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig>): void {
         super.onConfigurationLoaded(config);
 
         let sl0 = this.getLayerAtIndex(0) as SpriteLayer;
@@ -71,6 +71,8 @@ class MyWorld extends SimpleSpriteWorld {
 
             this.lastClickPoint = this.inputAccumalator.mouseDownPoint;
         }
+
+        this.inputAccumalator.reset();
     }
 
     private lastClickPoint: Point;

@@ -13,9 +13,9 @@
                         {
                             "key": "corner",
                             "frameHeight": 32,
-                            "frameWidth": 32,
-                            "sourceX": 64,
-                            "sourceY": 96
+                            "frameWidth": 64,
+                            "sourceX": 32,
+                            "sourceY": 64
                         }
                     ]
                 }
@@ -63,28 +63,44 @@
             ]
         }
     ],
-    "layers":[
-        {
-            "wr": [
-                [0, 0], [0, 1],
-                [1, 0], [1, 1]
-            ],
-            "wd": [
-                [0, 3], [0, 4]
-            ]
+    "layers": {
+        "defaults": {
+            "stepHeight": 32,
+            "stepWidth": 32
         },
-        {
-            "g": [
-                [0, 2],
-                [1, 2], [1, 3], [1, 4]
-            ]
-        },
-        {
-            "corner": [
-                [1, 1]
-            ]
-        }
-    ],
+        "layers": [
+            {
+                "sprites": {
+                    "wr": [
+                        [0, 0], [0, 1],
+                        [1, 0], [1, 1]
+                    ],
+                    "wd": [
+                        [0, 3], [0, 4]
+                    ]
+                }
+            },
+            {
+                "sprites": {
+                    "g": [
+                        [0, 2],
+                        [1, 2], [1, 3], [1, 4]
+                    ]
+                }
+            },
+            {
+                "step": {
+                    "height": 32,
+                    "width": 64
+                },
+                "sprites": {
+                    "corner": [
+                        [0, 1]
+                    ]
+                }
+            }
+        ]
+    },
     "actorConfigs": {
         "Soldier": [
             {
