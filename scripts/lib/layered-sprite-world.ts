@@ -1,6 +1,6 @@
 import { InputAccumalator } from "./input.js";
 import { Point } from "./common.js";
-import { SpriteMap } from "./sprite.js";
+import { SpriteConfig, SpriteMap } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Layer } from "./layer.js";
 
@@ -120,7 +120,7 @@ export type ActorConfig = {
     sprites: Array<string>
 }
 
-export interface LayeredSpriteWorldConfig extends LayeredWorldConfig<SpriteLayerConfig> {
+export interface LayeredSpriteWorldConfig extends LayeredWorldConfig<SpriteLayerConfig>, SpriteConfig {
     actorConfigs?: {
         [key: string]: [ActorConfig]
     }
@@ -130,18 +130,6 @@ export interface LayeredSpriteWorldConfig extends LayeredWorldConfig<SpriteLayer
  * Reperesents everything on the canvas
  */
 export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends InputAccumalator> extends LayeredWorld<C, SpriteLayerConfig> {
-    /**
-     * Initializes the world
-     * @param canvas The canvas on which the world will be drawn
-     * @param config Configuration data for the world
-     * @param spriteMap Data structure for the sprites in the world
-     */
-    constructor(canvas: HTMLCanvasElement, configURL: string, spriteMapURL: string) {
-        super(canvas, configURL);
-
-        this.spriteMap.loadSpritesFrom(spriteMapURL);
-    }
-
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
 
@@ -151,6 +139,8 @@ export abstract class SpriteWorld<C extends LayeredSpriteWorldConfig, IA extends
                     this.actors.push(this.constructActorAt(name, actorConfig));
             }
         }
+
+        config.spriteSources.forEach(spriteSource => this.spriteMap.loadSpriteSource(spriteSource));
     }
 
     protected onLayerConfigurationLoaded(config: SpriteLayerConfig): void {

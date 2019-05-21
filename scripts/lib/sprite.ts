@@ -1,7 +1,7 @@
 
 import { loadJSON, loadPNG } from "./web-loaders.js";
 
-interface SpriteConfig {
+export interface SpriteConfig {
     spriteSources: Array<SpriteSheetSource>
 }
 interface SpriteSheetSource {
@@ -202,16 +202,12 @@ export class SpriteMap {
         this.map = new Map<string, PointSprite>();
     }
 
-    public loadSpritesFrom(configURL: string): void {
-        loadJSON(configURL, (config: SpriteConfig) => config.spriteSources.forEach(ss => this.loadSpriteSource(ss)));
-    }
-    
-    private loadSpriteSource(sss: SpriteSheetSource): void {
+    public loadSpriteSource(spriteSheetSource: SpriteSheetSource): void {
     
         // For each sprite
-        sss.singles.forEach((single) => {
+        spriteSheetSource.singles.forEach((single) => {
             // Load the image file
-            loadPNG(sss.baseURL + single.fileName, (image: HTMLImageElement) => {
+            loadPNG(spriteSheetSource.baseURL + single.fileName, (image: HTMLImageElement) => {
                 // Add the sprite to the map    
                 this.addSprite(
                     single.key,
@@ -224,9 +220,9 @@ export class SpriteMap {
         });
 
         // For each sprite sheet
-        sss.sheets.forEach((sheet) => {
+        spriteSheetSource.sheets.forEach((sheet) => {
             // Load the image file
-            loadPNG(sss.baseURL + sheet.fileName, (image) => {
+            loadPNG(spriteSheetSource.baseURL + sheet.fileName, (image) => {
                 
                 let defaults = sheet.defaultSpriteProperties;
                 // For each sprite in the sheet

@@ -1,8 +1,12 @@
-## Sprites
+## World
 
-Sprites resources are specified in a sprite configuration JSON file similar to the one shown below:
+The layout and contents of the canvas/world are specified in a JSON file similar to the one below:
 ```json
 {
+    "view": {
+        "height": 64,
+        "width": 160
+    },
     "spriteSources": [
         {
             "baseURL": "./images/",
@@ -32,9 +36,26 @@ Sprites resources are specified in a sprite configuration JSON file similar to t
                 }
             ]
         }
-    ]
+    ],
+    "layers":[
+        {
+            "wd": [
+                [0, 3], [0, 4]
+            ]
+        }
+    ],
+    "actorConfigs": {
+        "Soldier": [
+            {
+                "location": [70, 30],
+                "isi": 0,
+                "sprites": [ "rsl" ]
+            }
+        ]
+    }
 }
 ```
+- `view` contains properties about the canvas/view
 - `spriteSources` is a list of sources from which image files can be found
   - `baseURL` is the URL of the source
   - `sheets` is a list of images which contain multiple sprites
@@ -59,35 +80,6 @@ Sprites resources are specified in a sprite configuration JSON file similar to t
     - `numberOfFrames` _(Optional)_ is the number of times which the sprite's frame repeats in the sheet. Default value is `1`.
     - `isHorizontal` _(Optional)_ is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically. Default value is `true`.
     - `fps` _(Optional)_ is the number of frames which should be shown in a single second
-
-## World
-
-The layout and contents of the canvas/world is specified in a second JSON file similar to the one below:
-```json
-{
-    "view": {
-        "height": 64,
-        "width": 160
-    },
-    "layers":[
-        {
-            "wd": [
-                [0, 3], [0, 4]
-            ]
-        }
-    ],
-    "actorConfigs": {
-        "Soldier": [
-            {
-                "location": [70, 30],
-                "isi": 0,
-                "sprites": [ "rsl" ]
-            }
-        ]
-    }
-}
-```
-- `view` contains properties about the canvas/view
 - `layers` is a list of of objects which describe the layers of sprites. The properties of the objects are the `key`s found in the sprite configuration file. Each property is a list of pairs of numbers. Each pair is a _(row, column)_ coordinate of in the layer's 32x32 pixel grid.
 - `actorConfigs` _(Optional)_ is an object whose properties are the names of the subclasses of the `Actor` class. The properties are lists of objects where each object represents an instance of the subclass in the world
   - `location` is the location of the actor in pixels

@@ -29,8 +29,8 @@ export class Soldier extends Actor<SimpleInputAccumalator> {
 }
 
 class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, SimpleInputAccumalator> {
-    constructor(canvas: HTMLCanvasElement, configURL: string, spriteMapURL: string) {
-        super(canvas, configURL, spriteMapURL);
+    constructor(canvas: HTMLCanvasElement, configURL: string) {
+        super(canvas, configURL);
 
         this.ia = new SimpleInputAccumalator(canvas);
     }
@@ -91,8 +91,7 @@ class MyWorld extends SpriteWorld<LayeredSpriteWorldConfig, SimpleInputAccumalat
 window.onload = function() {
         let world = new MyWorld(
             (document.getElementById("theCanvas") as HTMLCanvasElement),
-            "./config/world-config.json",
-            "./config/sprite-config.json"
+            "./config/world-config.json"
         );
         world.start();
 }
