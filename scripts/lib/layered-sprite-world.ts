@@ -196,7 +196,11 @@ export abstract class GenericPureSpriteWorld<
     protected onLayerConfigurationLoaded(config: SMLC): void {
         super.onLayerConfigurationLoaded(config);
 
-        config.layers.forEach(layerConfig => this.addLayer(this.constructSpriteLayer(layerConfig, this.spriteMap)));
+        config.layers.forEach(layerConfig => this.addLayer(this.constructSpriteLayer(
+            layerConfig,
+            this.spriteMap,
+            config.defaults
+        )));
     }
 
     protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;
