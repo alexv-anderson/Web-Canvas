@@ -68,7 +68,7 @@
             "stepHeight": 32,
             "stepWidth": 32
         },
-        "layers": [
+        "index": [
             {
                 "sprites": {
                     "wr": [

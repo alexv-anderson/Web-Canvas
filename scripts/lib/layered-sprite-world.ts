@@ -6,7 +6,8 @@ import { Layer } from "./layer.js";
 
 export interface SpriteMultilayerLayoutConfig<SLC extends SpriteLayerConfig, SMLCD extends SpriteMultilayerLayoutConfigDefaults> extends LayerConfig {
     defaults?: SMLCD,
-    layers: [SLC]
+    index: Array<SLC>,
+    arrangement?: Array<number>
 };
 
 export interface SpriteMultilayerLayoutConfigDefaults {
@@ -196,11 +197,17 @@ export abstract class GenericPureSpriteWorld<
     protected onLayerConfigurationLoaded(config: SMLC): void {
         super.onLayerConfigurationLoaded(config);
 
-        config.layers.forEach(layerConfig => this.addLayer(this.constructSpriteLayer(
+        let constructedLayers = config.index.map(layerConfig => this.constructSpriteLayer(
             layerConfig,
             this.spriteMap,
             config.defaults
-        )));
+        ));
+
+        if(config.arrangement) {
+            config.arrangement.forEach(layerIndex => this.addLayer(constructedLayers[layerIndex]));
+        } else {
+            constructedLayers.forEach(layer => this.addLayer(layer));
+        }
     }
 
     protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;

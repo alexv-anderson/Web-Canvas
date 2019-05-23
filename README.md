@@ -37,13 +37,32 @@ The layout and contents of the canvas/world are specified in a JSON file similar
             ]
         }
     ],
-    "layers":[
-        {
-            "wd": [
-                [0, 3], [0, 4]
-            ]
-        }
-    ],
+    "layers": {
+        "defaults": {
+            "stepHeight": 32,
+            "stepWidth": 32
+        },
+        "index": [
+            {
+                "sprites": {
+                    "wd": [
+                        [0, 3], [0, 4]
+                    ]
+                }
+            },
+            {
+                "step": {
+                    "width": 64
+                },
+                "sprites": {
+                    "corner": [
+                        [0, 1]
+                    ]
+                }
+            }
+        ],
+        "arrangement": [ 1, 0 ]
+    },
     "actorConfigs": {
         "Soldier": [
             {
@@ -80,7 +99,16 @@ The layout and contents of the canvas/world are specified in a JSON file similar
     - `numberOfFrames` _(Optional)_ is the number of times which the sprite's frame repeats in the sheet. Default value is `1`.
     - `isHorizontal` _(Optional)_ is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically. Default value is `true`.
     - `fps` _(Optional)_ is the number of frames which should be shown in a single second
-- `layers` is a list of of objects which describe the layers of sprites. The properties of the objects are the `key`s found in the sprite configuration file. Each property is a list of pairs of numbers. Each pair is a _(row, column)_ coordinate of in the layer's 32x32 pixel grid.
+- `layers` describes the layers in the world.
+    - `defaults`  _(Optional)_ sets default values for the per-layer properties
+        - `stepHeight` _(Optional)_ the default step height used by all layers
+        - `stepWidth` _(Optional)_ the default step width used by all layers
+    - `index` is a list of objects which describe the layers of sprites.
+        - `step` _(Optional)_ describes the step sizes used by the layer to form its grid
+            - `height` _(Optional)_ is the number of pixels between the layer's horizontal gird lines
+            - `width` _(Optional)_ is the number of pixels between the layer's vertical gird lines
+        - `sprites` is an object whose properites are the `key`s found in the `spriteSources`. Each property is a list of pairs of numbers. Each pair is a _(row, column)_ coordinate of in the layer's grid.
+    - `arrangement` _(Optional)_ is a list which uses the indexes of the objects in `index` to re-arrange the order of the layers.
 - `actorConfigs` _(Optional)_ is an object whose properties are the names of the subclasses of the `Actor` class. The properties are lists of objects where each object represents an instance of the subclass in the world
   - `location` is the location of the actor in pixels
   - `sprites` the `key`s of the sprites which the actor can access
