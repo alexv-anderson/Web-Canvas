@@ -20,20 +20,21 @@ interface MultispriteSheetDescription {
 interface MonospriteSheetDescription extends SpriteDescription {
     fileName: string,
 }
-interface SpriteDescription extends SpriteProperties {
+interface SpriteDescription extends MultiFrameSpriteProperties {
     key: string,
 }
 interface SpriteProperties {
     frameHeight?: number,
     frameWidth?: number,
 
-    numberOfFrames?: number,
-    fps?: number,
-
-    isHorizontal?: boolean,
-
     sourceX?: number,
     sourceY?: number
+}
+interface MultiFrameSpriteProperties extends SpriteProperties {
+    numberOfFrames?: number,
+    fps?: number,
+    
+    isHorizontal?: boolean
 }
 
 /**
@@ -64,12 +65,8 @@ export class Sprite {
      * @param options Options which change how the sprite behaves
      */
     constructor(image: HTMLImageElement, options?: SpriteProperties) {
-        this.frameIndex = 0;
-
-        this.numberOfFrames = 1;
-        this.horizontal = true;
-        this.imageBaseX = 0;
-        this.imageBaseY = 0;
+        this._imageBaseX = 0;
+        this._imageBaseY = 0;
 
         this._frameHeight = image.height;
         this._frameWidth = image.width;
@@ -78,15 +75,9 @@ export class Sprite {
             this._frameHeight = options.frameHeight || this._frameHeight;
             this._frameWidth = options.frameWidth || this._frameWidth;
 
-            this.numberOfFrames = options.numberOfFrames || this.numberOfFrames;
-            this.framesPerSecond = options.fps;
-            this.horizontal = options.isHorizontal !== undefined ? options.isHorizontal : this.horizontal;
-            this.imageBaseX = options.sourceX || this.imageBaseX;
-            this.imageBaseY = options.sourceY || this.imageBaseY;
+            this._imageBaseX = options.sourceX || this._imageBaseX;
+            this._imageBaseY = options.sourceY || this._imageBaseY;
         }
-
-        this.lastUpdateTime = 0;
-        this.lastFrameChangeTime = 0;
 
         this.image = image;
     }
@@ -99,16 +90,10 @@ export class Sprite {
      * @param y The y-coordinate of the sprite's frame on the canvas
      */
     public render(context: CanvasRenderingContext2D, x: number, y: number): void {
-        let srcX = this.imageBaseX;
-        let srcY = this.imageBaseY;
+        this.renderFrom(context, x, y, this.frameSourceImageX, this.frameSourceImageY);
+    }
 
-        // Toggle controls whether frames progress to the right or left
-        if(this.horizontal) {
-            srcX += this.frameIndex * this.frameWidth;
-        } else {
-            srcY += this.frameIndex * this.frameHeight;
-        }
-
+    protected renderFrom(context: CanvasRenderingContext2D, x: number, y: number, srcX: number, srcY: number): void {
         context.drawImage(
             this.image,
             srcX,
@@ -122,21 +107,8 @@ export class Sprite {
         );
     }
 
-    /**
-     * Updates the frame which is shown for the sprite.
-     * @param dt Number of milliseconds which have passed since the last time this method was called
-     */
     public update(dt: number): void {
-        if(this.framesPerSecond) {
-            let msPerFrame = 1000 / this.framesPerSecond;
 
-            this.lastUpdateTime += dt;
-
-            if(this.lastUpdateTime - this.lastFrameChangeTime > msPerFrame) {
-                this.frameIndex = (this.frameIndex + 1) % this.numberOfFrames;
-                this.lastFrameChangeTime = this.lastUpdateTime;
-            }
-        }
     }
 
     /**
@@ -152,21 +124,121 @@ export class Sprite {
         return this._frameHeight;
     }
 
+    protected get imageBaseX(): number {
+        return this._imageBaseX;
+    }
+    protected get imageBaseY(): number {
+        return this._imageBaseY;
+    }
+
+    protected get frameSourceImageX(): number {
+        return this.imageBaseX;
+    }
+    protected get frameSourceImageY(): number {
+        return this.imageBaseY;
+    }
+
     private image: HTMLImageElement;
 
-    private imageBaseX: number;
-    private imageBaseY: number;
+    private _imageBaseX: number;
+    private _imageBaseY: number;
+
+    private _frameHeight: number;
+    private _frameWidth: number;
+}
+
+class MultiFrameSprite extends Sprite {
+    /**
+     * Initializes the sprite.
+     * 
+     * @param image The image which holds the sprite
+     */
+    constructor(image: HTMLImageElement)
+    /**
+     * Initializes the sprite.
+     * 
+     * A sprite is a image file which contains a single column or row of one or more frames.
+     * 
+     * @param image The image which holds the sprite
+     * @param options Options which change how the sprite behaves
+     */
+    constructor(image: HTMLImageElement, options: MultiFrameSpriteProperties)
+    /**
+     * Initializes the sprite.
+     * 
+     * A sprite is a image file which contains a single column or row of one or more frames.
+     * 
+     * @param image The image which holds the sprite
+     * @param options Options which change how the sprite behaves
+     */
+    constructor(image: HTMLImageElement, options?: MultiFrameSpriteProperties) {
+        let defaultNumberOfFrames = 1;
+        let defaultHorizontal = true;
+
+        if(options) {
+            super(image, options);
+
+            this.numberOfFrames = options.numberOfFrames || defaultNumberOfFrames;
+            this.framesPerSecond = options.fps;
+            this.horizontal = options.isHorizontal !== undefined ? options.isHorizontal : defaultHorizontal;
+        } else {
+            super(image);
+
+            this.numberOfFrames = defaultNumberOfFrames;
+            this.horizontal = defaultHorizontal;
+        }
+
+        this.frameIndex = 0;
+
+        this.lastUpdateTime = 0;
+        this.lastFrameChangeTime = 0;
+    }
+
+    protected get frameSourceImageX(): number {
+        let srcX = this.imageBaseX;
+
+        if(this.horizontal) {
+            srcX += this.frameIndex * this.frameWidth;
+        }
+
+        return srcX;
+    }
+    protected get frameSourceImageY(): number {
+        let srcY = this.imageBaseY;
+        
+        if(!this.horizontal) {
+            srcY += this.frameIndex * this.frameHeight;
+        }
+
+        return srcY;
+    }
+
+    /**
+     * Updates the frame which is shown for the sprite.
+     * @param dt Number of milliseconds which have passed since the last time this method was called
+     */
+    public update(dt: number): void {
+        super.update(dt);
+
+        if(this.framesPerSecond) {
+            let msPerFrame = 1000 / this.framesPerSecond;
+
+            this.lastUpdateTime += dt;
+
+            if(this.lastUpdateTime - this.lastFrameChangeTime > msPerFrame) {
+                this.frameIndex = (this.frameIndex + 1) % this.numberOfFrames;
+                this.lastFrameChangeTime = this.lastUpdateTime;
+            }
+        }
+    }
 
     private numberOfFrames: number;
     private lastUpdateTime: number;
     private lastFrameChangeTime: number;
     private framesPerSecond?: number;
     private frameIndex: number;
-
-    private _frameHeight: number;
-    private _frameWidth: number;
-
     private horizontal: boolean;
+    private alwaysRun: boolean;
 }
 
 interface Point {
@@ -177,7 +249,7 @@ interface Point {
 /**
  * Represents a single sprite which may be composed of one or more frames.
  */
-export class PointSprite extends Sprite {
+export class PointSprite extends MultiFrameSprite {
 
     /**
      * Draws the current frame of the sprite on the canvas at the given coordinates.
