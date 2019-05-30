@@ -30,9 +30,13 @@ The layout and contents of the canvas/world are specified in a JSON file similar
                     "key": "wd",
                     "frameWidth": 32,
                     "frameHeight": 32,
-                    "numberOfFrames": 4,
-                    "isHorizontal": false,
-                    "fps": 4
+                    "frames": {
+                        "numberOfFrames": 4,
+                        "isHorizontal": false,
+                        "framesPerSecond": 4,
+                        "loop": true,
+                        "autoStart": true
+                    }
                 }
             ]
         }
@@ -75,6 +79,8 @@ The layout and contents of the canvas/world are specified in a JSON file similar
 }
 ```
 - `view` contains properties about the canvas/view
+    - `height` is the height of the canvas element in pixels
+    - `width` is the width of the canvas element in pixels
 - `spriteSources` is a list of sources from which image files can be found
   - `baseURL` is the URL of the source
   - `sheets` is a list of images which contain multiple sprites
@@ -86,19 +92,25 @@ The layout and contents of the canvas/world are specified in a JSON file similar
       - `key` the key by which the sprite will be refered to in the world configuration file and the library's API.
       - `frameHeight` _(Optional)_ is the height of the sprite in pixels. If no default is given, then the height will be the height of the sheet.
       - `frameWidth` _(Optional)_ is the width of the sprite in pixels. If no default is given, then the width will be the width of the sheet.
-      - `numberOfFrames` _(Optional)_ is the number of times which the sprite's frame repeats in the sheet. Default value is `1`.
-      - `isHorizontal` _(Optional)_ is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically. Default value is `true`.
-      - `fps` _(Optional)_ is the number of frames which should be shown in a single second
       - `sourceX` _(Optional)_ The x-coordinate of the sprite in the image. Default value is `0`.
       - `sourceY` _(Optional)_ The y-coordinate of the sprite in the image. Default value is `0`.
+      - `frames` _(Optional)_ an object which describes sprites which have multiple frames.
+        - `numberOfFrames`  is the number of times which the sprite's frame repeats in the sheet. If no `frame` object is given, then a default value of `1` is used.
+        - `isHorizontal` is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically. If no `frame` object is given, then a default value of `true` is used.
+        - `framesPerSecond` is the number of frames which should be shown in a single second. If no `frame` object is given, then a default value of `32` is used.
+        - `loop` is a boolean flag indicating if the the zeroth frame should be shown after the last frame creating a looped animation. If no `frame` object is given, then a default value of `true` is used.
+        - `autoStart` is a boolean flag indicating of the progression of frames should begin once the world has been set into motion. If no `frame` object is given, then a default value of `false` is used.
   - `singles` is a list of images which contain a single sprite
     - `fileName` is the image's file path from the `baseURL`
     - `key` the key by which the sprite will be refered to in the world configuration file and the library's API.
     - `frameHeight` _(Optional)_ is the height of the sprite in pixels. Default value is the height of the image.
     - `frameWidth` _(Optional)_ is the width of the sprite in pixels. Default value is the width of the image.
-    - `numberOfFrames` _(Optional)_ is the number of times which the sprite's frame repeats in the sheet. Default value is `1`.
-    - `isHorizontal` _(Optional)_ is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically. Default value is `true`.
-    - `fps` _(Optional)_ is the number of frames which should be shown in a single second
+    - `frames` _(Optional)_ an object which describes sprites which have multiple frames.
+      - `numberOfFrames`  is the number of times which the sprite's frame repeats in the sheet. If no `frame` object is given, then a default value of `1` is used.
+      - `isHorizontal` is a boolean flag indicating if the multiple frames used by the sprite progress horizontally or vertically. If no `frame` object is given, then a default value of `true` is used.
+      - `framesPerSecond` is the number of frames which should be shown in a single second. If no `frame` object is given, then a default value of `32` is used.
+      - `loop` is a boolean flag indicating if the the zeroth frame should be shown after the last frame creating a looped animation. If no `frame` object is given, then a default value of `true` is used.
+      - `autoStart` is a boolean flag indicating of the progression of frames should begin once the world has been set into motion. If no `frame` object is given, then a default value of `false` is used.
 - `layers` describes the layers in the world.
     - `defaults`  _(Optional)_ sets default values for the per-layer properties
         - `stepHeight` _(Optional)_ the default step height used by all layers

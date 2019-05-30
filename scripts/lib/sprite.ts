@@ -31,13 +31,15 @@ interface SpriteProperties {
     sourceY?: number
 }
 interface MultiFrameSpriteProperties extends SpriteProperties {
-    numberOfFrames?: number,
-    fps?: number,
+    frames?: {
+        numberOfFrames: number,
+        framesPerSecond: number,
 
-    isHorizontal?: boolean,
+        areHorizontal: boolean,
 
-    loop?: boolean,
-    autoStart?: boolean
+        loop: boolean,
+        autoStart: boolean
+    }
 }
 
 /**
@@ -175,28 +177,33 @@ class MultiFrameSprite extends Sprite {
      * @param options Options which change how the sprite behaves
      */
     constructor(image: HTMLImageElement, options?: MultiFrameSpriteProperties) {
-        let defaultNumberOfFrames = 1;
-        let defaultHorizontal = true;
-        let defaultLoop = true;
-        let defaultAutoStart = false;
-
         if(options) {
             super(image, options);
 
-            this.numberOfFrames = options.numberOfFrames || defaultNumberOfFrames;
-            this.framesPerSecond = options.fps || 32;
-            this.horizontal = options.isHorizontal !== undefined ? options.isHorizontal : defaultHorizontal;
-            this.loop = options.loop !== undefined ? options.loop : defaultLoop;
-            this._updateFrame = options.autoStart !== undefined ? options.autoStart : defaultAutoStart;
+            if(options.frames) {
+                this.numberOfFrames = options.frames.numberOfFrames;
+                this.framesPerSecond = options.frames.framesPerSecond;
+                this.horizontal = options.frames.areHorizontal;
+                this.loop = options.frames.loop;
+
+                if(options.frames.autoStart) {
+                    this.start();
+                } else {
+                    this.pause();
+                }
+            }
 
         } else {
             super(image);
 
-            this.numberOfFrames = defaultNumberOfFrames;
-            this.horizontal = defaultHorizontal;
-            this.loop = defaultLoop;
-            this._updateFrame = defaultAutoStart;
+            this.pause();
         }
+
+        this.numberOfFrames = this.numberOfFrames || 1;
+        this.framesPerSecond = this.framesPerSecond || 32;
+        this.horizontal = this.horizontal !== undefined ? this.horizontal : true;
+        this.loop = this.loop !== undefined ? this.loop : true;
+        this._updateFrame = this._updateFrame !== undefined ? this._updateFrame : false;
 
         this.frameIndex = 0;
 
@@ -256,6 +263,9 @@ class MultiFrameSprite extends Sprite {
 
     public start(): void {
         this._updateFrame = true;
+    }
+    public pause(): void {
+        this._updateFrame = false;
     }
 
     private numberOfFrames: number;

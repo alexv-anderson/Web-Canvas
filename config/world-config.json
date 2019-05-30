@@ -26,20 +26,26 @@
                     "key": "wd",
                     "frameWidth": 32,
                     "frameHeight": 32,
-                    "numberOfFrames": 4,
-                    "isHorizontal": false,
-                    "fps": 4,
-                    "loop": false,
-                    "autoStart": true
+                    "frames": {
+                        "numberOfFrames": 4,
+                        "areHorizontal": false,
+                        "framesPerSecond": 4,
+                        "loop": false,
+                        "autoStart": true
+                    }
                 },
                 {
                     "fileName": "moving-water-right.png",
                     "key": "wr",
                     "frameWidth": 32,
                     "frameHeight": 32,
-                    "numberOfFrames": 4,
-                    "isHorizontal": true,
-                    "fps": 4
+                    "frames": {
+                        "numberOfFrames": 4,
+                        "isHorizontal": true,
+                        "framesPerSecond": 4,
+                        "loop": true,
+                        "autoStart": true
+                    }
                 },
                 {
                     "fileName": "grass.png",
@@ -52,9 +58,13 @@
                     "key": "rsl",
                     "frameWidth": 32,
                     "frameHeight": 32,
-                    "numberOfFrames": 2,
-                    "isHorizontal": true,
-                    "fps": 4
+                    "frames": {
+                        "numberOfFrames": 2,
+                        "isHorizontal": true,
+                        "framesPerSecond": 4,
+                        "loop": true,
+                        "autoStart": true
+                    }
                 },
                 {
                     "fileName": "target.png",
