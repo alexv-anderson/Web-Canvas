@@ -33,8 +33,11 @@ interface SpriteProperties {
 interface MultiFrameSpriteProperties extends SpriteProperties {
     numberOfFrames?: number,
     fps?: number,
-    
-    isHorizontal?: boolean
+
+    isHorizontal?: boolean,
+
+    loop?: boolean,
+    autoStart?: boolean
 }
 
 /**
@@ -174,18 +177,25 @@ class MultiFrameSprite extends Sprite {
     constructor(image: HTMLImageElement, options?: MultiFrameSpriteProperties) {
         let defaultNumberOfFrames = 1;
         let defaultHorizontal = true;
+        let defaultLoop = true;
+        let defaultAutoStart = false;
 
         if(options) {
             super(image, options);
 
             this.numberOfFrames = options.numberOfFrames || defaultNumberOfFrames;
-            this.framesPerSecond = options.fps;
+            this.framesPerSecond = options.fps || 32;
             this.horizontal = options.isHorizontal !== undefined ? options.isHorizontal : defaultHorizontal;
+            this.loop = options.loop !== undefined ? options.loop : defaultLoop;
+            this._updateFrame = options.autoStart !== undefined ? options.autoStart : defaultAutoStart;
+
         } else {
             super(image);
 
             this.numberOfFrames = defaultNumberOfFrames;
             this.horizontal = defaultHorizontal;
+            this.loop = defaultLoop;
+            this._updateFrame = defaultAutoStart;
         }
 
         this.frameIndex = 0;
@@ -220,25 +230,43 @@ class MultiFrameSprite extends Sprite {
     public update(dt: number): void {
         super.update(dt);
 
-        if(this.framesPerSecond) {
+        if(this._updateFrame) {
             let msPerFrame = 1000 / this.framesPerSecond;
 
             this.lastUpdateTime += dt;
 
             if(this.lastUpdateTime - this.lastFrameChangeTime > msPerFrame) {
-                this.frameIndex = (this.frameIndex + 1) % this.numberOfFrames;
                 this.lastFrameChangeTime = this.lastUpdateTime;
+
+                if(this.loop) {
+                    // Loop the animation
+                    this.frameIndex = (this.frameIndex + 1) % this.numberOfFrames;
+                } else {
+                    if(this.frameIndex === this.framesPerSecond - 1) {
+                        // The animation has finished so stop updating the frame
+                        this._updateFrame = false;
+                    } else {
+                        // Proceed to the next frame in the animation
+                        this.frameIndex += 1;
+                    }
+                }
             }
         }
+    }
+
+    public start(): void {
+        this._updateFrame = true;
     }
 
     private numberOfFrames: number;
     private lastUpdateTime: number;
     private lastFrameChangeTime: number;
-    private framesPerSecond?: number;
+    private framesPerSecond: number;
     private frameIndex: number;
     private horizontal: boolean;
-    private alwaysRun: boolean;
+    private loop: boolean;
+
+    private _updateFrame: boolean;
 }
 
 interface Point {
