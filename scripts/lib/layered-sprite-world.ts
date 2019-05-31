@@ -1,8 +1,8 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
-import { Point, Renderable, Updatable } from "./common.js";
+import { Point } from "./common.js";
 import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
-import { Layer } from "./layer.js";
+import { Block, BlockGridLayer } from "./layer.js";
 
 export interface SpriteMultilayerLayoutConfig<SLC extends SpriteLayerConfig, SMLCD extends SpriteMultilayerLayoutConfigDefaults> extends LayerConfig {
     defaults?: SMLCD,
@@ -26,44 +26,6 @@ interface SpriteLayerLocations {
     [key: string]: Array<Array<number>>
 }
 
-export abstract class Block<C extends Updatable & Renderable> implements Updatable {
-    constructor(row: number, column: number) {
-        this._row = row;
-        this._column = column;
-    }
-
-    public update(dt: number): void {
-        if(this.contents) {
-            this.contents.update(dt);
-        }
-    }
-
-    public render(context: CanvasRenderingContext2D,
-        columnStepSize: number, columnOffset: number,
-        rowStepSize: number, rowOffset: number): void {
-            
-        this.contents.renderAt(
-            context,
-            new Point(
-                (this.column * columnStepSize) + columnOffset,  // which column
-                (this.row * rowStepSize) + rowOffset            // which row
-            )
-        );
-    }
-
-    protected abstract get contents(): C;
-
-    public get row(): number {
-        return this._row;
-    }
-    public get column(): number {
-        return this._column;
-    }
-
-    private _row: number;
-    private _column: number;
-}
-
 class SpriteContainerBlock extends Block<SpriteContainer> {
     constructor(key: string, row: number, column: number, spriteMap: SpriteMap) {
         super(row, column);
@@ -76,44 +38,6 @@ class SpriteContainerBlock extends Block<SpriteContainer> {
     }
 
     private _container: SpriteContainer;
-}
-
-class BlockGridLayer<C extends Renderable & Updatable> implements Layer {
-    constructor(blockHeight: number, blockWidth: number) {
-        this._blocks = new Array<Block<C>>();
-
-        this._blockHeight = blockHeight;
-        this._blockWidth = blockWidth;
-    }
-
-    public update(dt: number): void {
-        this._blocks.forEach(i => i.update(dt));
-    }
-
-    public render(context: CanvasRenderingContext2D): void {
-        let xScale = this._blockWidth;
-        let xOffset = this._blockWidth / 2;
-
-        let yScale = this._blockHeight;
-        let yOffset = this._blockHeight / 2;
-
-        this._blocks.forEach(b => b.render(
-            context,
-            xScale,
-            xOffset,
-            yScale,
-            yOffset
-        ));
-    }
-
-    protected addBlock(block: Block<C>): void {
-        this._blocks.push(block);
-    }
-
-    private _blocks: Array<Block<C>>;
-
-    private _blockWidth: number;
-    private _blockHeight: number;
 }
 
 /**

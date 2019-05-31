@@ -1,5 +1,5 @@
 
-import { Point, Renderable, Updatable } from "./common.js"
+import { Point, RenderableAtPoint, Updatable } from "./common.js"
 import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
@@ -46,7 +46,7 @@ interface MultiFrameSpriteProperties extends SpriteProperties {
 /**
  * Represents a single sprite which may be composed of one or more frames.
  */
-export class Sprite {
+export class Sprite implements RenderableAtPoint, Updatable {
     /**
      * Initializes the sprite.
      * 
@@ -384,7 +384,7 @@ export class SpriteMap {
 }
 
 
-export class SpriteContainer implements Updatable, Renderable {
+export class SpriteContainer implements Updatable, RenderableAtPoint {
     constructor(key: string, spriteMap: SpriteMap) {
         this._spriteKey = key;
         this._spriteMap = spriteMap;

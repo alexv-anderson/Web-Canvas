@@ -4,6 +4,10 @@ export interface Updatable {
 }
 
 export interface Renderable {
+    render(context: CanvasRenderingContext2D): void;
+}
+
+export interface RenderableAtPoint {
     renderAt(context: CanvasRenderingContext2D, point: Point): void;
 }
 
