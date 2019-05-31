@@ -1,4 +1,5 @@
 
+import { Point, Renderable, Updatable } from "./common.js"
 import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
@@ -282,11 +283,6 @@ export class MultiFrameSprite extends Sprite {
     private _updateFrame: boolean;
 }
 
-interface Point {
-    x: number,
-    y: number
-}
-
 /**
  * Maps keys to a sprite
  */
@@ -385,4 +381,33 @@ export class SpriteMap {
     }
 
     private map: Map<string, MultiFrameSprite>;
+}
+
+
+export class SpriteContainer implements Updatable, Renderable {
+    constructor(key: string, spriteMap: SpriteMap) {
+        this._spriteKey = key;
+        this._spriteMap = spriteMap;
+    }
+
+    public update(dt: number): void {
+
+    }
+
+    public renderAt(context: CanvasRenderingContext2D, point: Point): void {
+        let sprite = this._spriteMap.getSprite(this.spriteKey);
+        if(sprite) {
+            sprite.renderAt(context, point);
+        }
+    }
+
+    protected get spriteKey(): string {
+        return this._spriteKey;
+    }
+    protected set spriteKey(key: string) {
+        this._spriteKey = key;
+    }
+    
+    private _spriteMap: SpriteMap;
+    private _spriteKey: string;
 }

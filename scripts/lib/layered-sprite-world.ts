@@ -1,6 +1,6 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point, Renderable, Updatable } from "./common.js";
-import { SpriteConfig, SpriteMap, MultiFrameSprite } from "./sprite.js";
+import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Layer } from "./layer.js";
 
@@ -42,18 +42,16 @@ export abstract class Block<C extends Updatable & Renderable> implements Updatab
         columnStepSize: number, columnOffset: number,
         rowStepSize: number, rowOffset: number): void {
             
-        if(this.contents) {
-            this.contents.renderAt(
-                context,
-                new Point(
-                    (this.column * columnStepSize) + columnOffset,  // which column
-                    (this.row * rowStepSize) + rowOffset            // which row
-                )
-            );
-        }
+        this.contents.renderAt(
+            context,
+            new Point(
+                (this.column * columnStepSize) + columnOffset,  // which column
+                (this.row * rowStepSize) + rowOffset            // which row
+            )
+        );
     }
 
-    protected abstract get contents(): C | undefined;
+    protected abstract get contents(): C;
 
     public get row(): number {
         return this._row;
@@ -66,20 +64,18 @@ export abstract class Block<C extends Updatable & Renderable> implements Updatab
     private _column: number;
 }
 
-class MultiFrameSpriteBlock extends Block<MultiFrameSprite> {
+class SpriteContainerBlock extends Block<SpriteContainer> {
     constructor(key: string, row: number, column: number, spriteMap: SpriteMap) {
         super(row, column);
 
-        this._key = key;
-        this._spriteMap = spriteMap;
+        this._container = new SpriteContainer(key, spriteMap);
     }
 
-    protected get contents(): MultiFrameSprite | undefined {
-        return this._spriteMap.getSprite(this._key);
+    protected get contents(): SpriteContainer {
+        return this._container;
     }
 
-    private _key: string;
-    private _spriteMap: SpriteMap;
+    private _container: SpriteContainer;
 }
 
 class BlockGridLayer<C extends Renderable & Updatable> implements Layer {
@@ -123,7 +119,7 @@ class BlockGridLayer<C extends Renderable & Updatable> implements Layer {
 /**
  * Represents a layer of sprites which for the background/floor
  */
-export class SpriteLayer extends BlockGridLayer<MultiFrameSprite> {
+export class SpriteLayer extends BlockGridLayer<SpriteContainer> {
     /**
      * Initializes the layer
      * @param config The configuration for the layer
@@ -145,7 +141,7 @@ export class SpriteLayer extends BlockGridLayer<MultiFrameSprite> {
                 let pair = pairs[pairIndex];
                 
                 this.addBlock(
-                    new MultiFrameSpriteBlock(
+                    new SpriteContainerBlock(
                         key,
                         pair[0],
                         pair[1],
