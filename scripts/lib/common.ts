@@ -1,3 +1,12 @@
+
+export interface Updatable {
+    update(dt: number): void;
+}
+
+export interface Renderable {
+    renderAt(context: CanvasRenderingContext2D, point: Point): void;
+}
+
 /**
  * Represents a point in 2D Cartesian space
  */

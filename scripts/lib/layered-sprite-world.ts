@@ -1,6 +1,6 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
-import { Point } from "./common.js";
-import { SpriteConfig, SpriteMap } from "./sprite.js";
+import { Point, Renderable, Updatable } from "./common.js";
+import { SpriteConfig, SpriteMap, MultiFrameSprite } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Layer } from "./layer.js";
 
@@ -26,79 +26,135 @@ interface SpriteLayerLocations {
     [key: string]: Array<Array<number>>
 }
 
+export abstract class Block<C extends Updatable & Renderable> implements Updatable {
+    constructor(row: number, column: number) {
+        this._row = row;
+        this._column = column;
+    }
+
+    public update(dt: number): void {
+        if(this.contents) {
+            this.contents.update(dt);
+        }
+    }
+
+    public render(context: CanvasRenderingContext2D,
+        columnStepSize: number, columnOffset: number,
+        rowStepSize: number, rowOffset: number): void {
+            
+        if(this.contents) {
+            this.contents.renderAt(
+                context,
+                new Point(
+                    (this.column * columnStepSize) + columnOffset,  // which column
+                    (this.row * rowStepSize) + rowOffset            // which row
+                )
+            );
+        }
+    }
+
+    protected abstract get contents(): C | undefined;
+
+    public get row(): number {
+        return this._row;
+    }
+    public get column(): number {
+        return this._column;
+    }
+
+    private _row: number;
+    private _column: number;
+}
+
+class MultiFrameSpriteBlock extends Block<MultiFrameSprite> {
+    constructor(key: string, row: number, column: number, spriteMap: SpriteMap) {
+        super(row, column);
+
+        this._key = key;
+        this._spriteMap = spriteMap;
+    }
+
+    protected get contents(): MultiFrameSprite | undefined {
+        return this._spriteMap.getSprite(this._key);
+    }
+
+    private _key: string;
+    private _spriteMap: SpriteMap;
+}
+
+class BlockGridLayer<C extends Renderable & Updatable> implements Layer {
+    constructor(blockHeight: number, blockWidth: number) {
+        this._blocks = new Array<Block<C>>();
+
+        this._blockHeight = blockHeight;
+        this._blockWidth = blockWidth;
+    }
+
+    public update(dt: number): void {
+        this._blocks.forEach(i => i.update(dt));
+    }
+
+    public render(context: CanvasRenderingContext2D): void {
+        let xScale = this._blockWidth;
+        let xOffset = this._blockWidth / 2;
+
+        let yScale = this._blockHeight;
+        let yOffset = this._blockHeight / 2;
+
+        this._blocks.forEach(b => b.render(
+            context,
+            xScale,
+            xOffset,
+            yScale,
+            yOffset
+        ));
+    }
+
+    protected addBlock(block: Block<C>): void {
+        this._blocks.push(block);
+    }
+
+    private _blocks: Array<Block<C>>;
+
+    private _blockWidth: number;
+    private _blockHeight: number;
+}
+
 /**
  * Represents a layer of sprites which for the background/floor
  */
-export class SpriteLayer implements Layer {
+export class SpriteLayer extends BlockGridLayer<MultiFrameSprite> {
     /**
      * Initializes the layer
      * @param config The configuration for the layer
      */
     constructor(config: SpriteLayerConfig, spriteMap: SpriteMap) {
-        this._sprites = config.sprites;
-
-        this._stepHeight = 32;
-        this._stepWidth = 32;
+        let stepHeight = 32;
+        let stepWidth = 32;
 
         if(config.step) {
-            this._stepHeight = config.step.height || this._stepHeight;
-            this._stepWidth = config.step.width || this._stepWidth;
+            stepHeight = config.step.height || stepHeight;
+            stepWidth = config.step.width || stepWidth;
         }
 
-        this.spriteMap = spriteMap;
-    }
+        super(stepHeight, stepWidth);
 
-    public update(dt: number): void {
-
-    }
-
-    /**
-     * Renders the layer on the supplied canvas using the given sprite map
-     * @param context The rendering context of the canvas on which the layer should be rendered
-     */
-    public render(context: CanvasRenderingContext2D): void {
-        let xScale = this._stepWidth;
-        let xOffset = this._stepWidth / 2;
-
-        let yScale = this._stepHeight;
-        let yOffset = this._stepHeight / 2;
-
-        for(let key in this._sprites) {
-            let pairs = this._sprites[key];
+        for(let key in config.sprites) {
+            let pairs = config.sprites[key];
             for(let pairIndex = 0; pairIndex < pairs.length; pairIndex++) {
                 let pair = pairs[pairIndex];
-                this.spriteMap.render(
-                    context,
-                    key,
-                    new Point(
-                        (pair[1] * xScale) + xOffset,   // which column
-                        (pair[0] * yScale) + yOffset    // which row
+                
+                this.addBlock(
+                    new MultiFrameSpriteBlock(
+                        key,
+                        pair[0],
+                        pair[1],
+                        spriteMap
                     )
-                )
+                );
             }
         }
     }
-
-    public addSquareFor(spriteKey: string, row: number, column: number): void {
-        if(this._sprites[spriteKey] === undefined) {
-            this._sprites[spriteKey] = [];
-        }
-
-        this._sprites[spriteKey].push([row, column]);
-    }
-
-    public getSquaresFor(spriteKey: string): Array<Array<number>> | undefined {
-        return this._sprites[spriteKey];
-    }
-
-    public removeAllSpriteSquares(spriteKey: string): void {
-        delete this._sprites[spriteKey];
-    }
-
-    private _sprites: SpriteLayerLocations;
-    private _stepHeight: number;
-    private _stepWidth: number;
-    private spriteMap: SpriteMap;
 }
 
 /**
@@ -141,7 +197,7 @@ export abstract class Actor<IA extends InputAccumalator> {
     public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
         let sprite = spriteMap.getSprite(this.spriteKeys[this.spriteIndex]);
         if(sprite) {
-            sprite.renderAtCenterPoint(
+            sprite.renderAt(
                 context,
                 new Point(
                     this.location.x,
@@ -251,6 +307,10 @@ export abstract class GenericPureSpriteWorld<
             key: key,
             center: center
         });
+    }
+
+    protected getSprite(key: string): MultiFrameSprite | undefined {
+        return this.spriteMap.getSprite(key);
     }
 
     private adhocSprites: Array<{ key: string, center: Point}> = [];

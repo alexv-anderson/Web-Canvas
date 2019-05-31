@@ -70,11 +70,13 @@ export class Sprite {
      * @param options Options which change how the sprite behaves
      */
     constructor(image: HTMLImageElement, options?: SpriteProperties) {
+        this._frameHeight = image.height;
+        this._frameWidth = image.width;
+
         this._imageBaseX = 0;
         this._imageBaseY = 0;
 
-        this._frameHeight = image.height;
-        this._frameWidth = image.width;
+        this._centerRender = true;
 
         if(options !== undefined) {
             this._frameHeight = options.frameHeight || this._frameHeight;
@@ -91,11 +93,10 @@ export class Sprite {
      * Draws the current frame of the sprite on the canvas at the given coordinates.
      * 
      * @param context The canvas' 2D rendering context
-     * @param x The x-coordinate of the sprite's frame on the canvas
-     * @param y The y-coordinate of the sprite's frame on the canvas
+     * @param point The point at which the sprite should be rendered on the canvas
      */
-    public render(context: CanvasRenderingContext2D, x: number, y: number): void {
-        this.renderFrom(context, x, y, this.frameSourceImageX, this.frameSourceImageY);
+    public renderAt(context: CanvasRenderingContext2D, point: Point): void {
+        this.renderFrom(context, point.x, point.y, this.frameSourceImageX, this.frameSourceImageY);
     }
 
     protected renderFrom(context: CanvasRenderingContext2D, x: number, y: number, srcX: number, srcY: number): void {
@@ -105,8 +106,8 @@ export class Sprite {
             srcY,
             this.frameWidth,
             this.frameHeight,
-            x,
-            y,
+            this._centerRender ? x - (this.frameWidth / 2) : x,
+            this._centerRender ? y - (this.frameHeight / 2) : y,
             this.frameWidth,
             this.frameHeight
         );
@@ -150,9 +151,11 @@ export class Sprite {
 
     private _frameHeight: number;
     private _frameWidth: number;
+
+    private _centerRender: boolean;
 }
 
-class MultiFrameSprite extends Sprite {
+export class MultiFrameSprite extends Sprite {
     /**
      * Initializes the sprite.
      * 
@@ -285,31 +288,11 @@ interface Point {
 }
 
 /**
- * Represents a single sprite which may be composed of one or more frames.
- */
-export class PointSprite extends MultiFrameSprite {
-
-    /**
-     * Draws the current frame of the sprite on the canvas at the given coordinates.
-     * 
-     * @param context The canvas' 2D rendering context
-     * @param center The center point of the sprite's frame on the canvas
-     */
-    public renderAtCenterPoint(context: CanvasRenderingContext2D, center: Point): void {
-        super.render(
-            context,
-            center.x - (this.frameWidth / 2),
-            center.y - (this.frameHeight / 2)
-        );
-    }
-}
-
-/**
  * Maps keys to a sprite
  */
 export class SpriteMap {
     constructor() {
-        this.map = new Map<string, PointSprite>();
+        this.map = new Map<string, MultiFrameSprite>();
     }
 
     public loadSpriteSource(spriteSheetSource: SpriteSheetSource): void {
@@ -321,7 +304,7 @@ export class SpriteMap {
                 // Add the sprite to the map    
                 this.addSprite(
                     single.key,
-                    new PointSprite(
+                    new MultiFrameSprite(
                         image,
                         single
                     )
@@ -349,7 +332,7 @@ export class SpriteMap {
                     // Add the sprite to the map
                     this.addSprite(
                         spriteDescription.key,
-                        new PointSprite(
+                        new MultiFrameSprite(
                             image,
                             spriteDescription
                         )
@@ -366,7 +349,7 @@ export class SpriteMap {
      * @param key The key to be used for the given sprite
      * @param sprite The sprte to be associated with the given key
      */
-    public addSprite(key: string, sprite: PointSprite): void {
+    public addSprite(key: string, sprite: MultiFrameSprite): void {
         this.map.set(key, sprite);
     }
 
@@ -375,7 +358,7 @@ export class SpriteMap {
      * @param dt Number of milliseconds which have passed since the last time this method was called
      */
     public updateAllSprites(dt: number): void {
-        this.map.forEach((sprite: PointSprite) => sprite.update(dt));
+        this.map.forEach((sprite: MultiFrameSprite) => sprite.update(dt));
     }
 
     /**
@@ -389,7 +372,7 @@ export class SpriteMap {
         let sprite = this.getSprite(key);
 
         if(sprite) {
-            sprite.renderAtCenterPoint(context, center);
+            sprite.renderAt(context, center);
         }
     }
 
@@ -397,9 +380,9 @@ export class SpriteMap {
      * Supplies the sprite associated with the given key
      * @param key The key for the desired sprite
      */
-    public getSprite(key: string): PointSprite | undefined {
+    public getSprite(key: string): MultiFrameSprite | undefined {
         return this.map.get(key);
     }
 
-    private map: Map<string, PointSprite>;
+    private map: Map<string, MultiFrameSprite>;
 }

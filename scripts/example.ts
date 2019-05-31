@@ -31,15 +31,6 @@ export class Soldier extends Actor<SimpleInputAccumalator> {
 class MyWorld extends SimpleSpriteWorld {
     protected onConfigurationLoaded(config: SimpleMultilayeredSpriteWorldConfig): void {
         super.onConfigurationLoaded(config);
-
-        let sl0 = this.getLayerAtIndex(0);
-        let sqrs = sl0.getSquaresFor("wr");
-        if(sqrs) {
-            sqrs.pop();    
-        }
-
-        let sl1 = this.getLayerAtIndex(1);
-        sl1.addSquareFor("rsl", 1, 0);
     }
 
     protected constructActorAt(key: string, actorConfig: ActorConfig): Actor<SimpleInputAccumalator> | never {
