@@ -8,6 +8,8 @@ import { Point } from "./lib/common.js";
 
 export class Soldier extends Actor<SimpleInputAccumalator> {
     public update(dt: number, inputAccumalator?: SimpleInputAccumalator): void {
+        super.update(dt);
+
         let dx: number = 0;
         let dy: number = 0;
 

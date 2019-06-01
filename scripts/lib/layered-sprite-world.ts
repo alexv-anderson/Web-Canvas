@@ -1,6 +1,6 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point } from "./common.js";
-import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer } from "./sprite.js";
+import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer, InteractiveSpriteContainer } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
@@ -89,7 +89,7 @@ export interface ActorConfig {
 /**
  * Represents something at can move due to user input on the canvas
  */
-export abstract class Actor<IA extends InputAccumalator> extends SpriteContainer {
+export abstract class Actor<IA extends InputAccumalator> extends InteractiveSpriteContainer<IA> {
 
     /**
      * Initializes the actor
@@ -104,12 +104,6 @@ export abstract class Actor<IA extends InputAccumalator> extends SpriteContainer
         this.spriteIndex = 0;
         this.spriteKeys = config.sprites;
     }
-
-    /**
-     * Updates the actor using input from the user
-     * @param inputAccumalator Input which has been supplied by the user
-     */
-    public abstract update(dt: number, inputAccumalator?: IA): void;
 
     /**
      * Renders the actor on the canvas

@@ -1,5 +1,6 @@
 
 import { Placeable, Point, Renderable, Updatable } from "./common.js"
+import { InputAccumalator } from "./input.js";
 import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
@@ -50,7 +51,7 @@ export interface RenderableAtPoint {
 /**
  * Represents a single sprite which may be composed of one or more frames.
  */
-export class Sprite implements RenderableAtPoint, Updatable {
+export class Sprite implements RenderableAtPoint {
     /**
      * Initializes the sprite.
      * 
@@ -114,10 +115,6 @@ export class Sprite implements RenderableAtPoint, Updatable {
             this.frameWidth,
             this.frameHeight
         );
-    }
-
-    public update(dt: number): void {
-
     }
 
     /**
@@ -239,7 +236,6 @@ export class MultiFrameSprite extends Sprite {
      * @param dt Number of milliseconds which have passed since the last time this method was called
      */
     public update(dt: number): void {
-        super.update(dt);
 
         if(this._updateFrame) {
             let msPerFrame = 1000 / this.framesPerSecond;
@@ -397,6 +393,10 @@ export class SpriteContainer implements Updatable, Renderable, Placeable {
         this._centerRender = true;
     }
 
+    /**
+     * Updates the actor using input from the user
+     * @param dt The number of milliseconds which have passed since the last time this method was called
+     */
     public update(dt: number): void {
 
     }
@@ -450,4 +450,23 @@ export class SpriteContainer implements Updatable, Renderable, Placeable {
     private _spriteKey: string | undefined;
     private _location: Point;
     private _centerRender: boolean;
+}
+
+/**
+ * Represents a sprite container which at can respond to input
+ */
+export class InteractiveSpriteContainer<IA extends InputAccumalator> extends SpriteContainer {
+
+    /**
+     * Updates the actor using input from the user
+     * @param dt The number of milliseconds which have passed since the last time this method was called
+     * @param inputAccumalator Input which has been supplied by the user
+     */
+    public update(dt: number, inputAccumalator?: IA): void {
+        super.update(dt);
+    }
+
+    public render(context: CanvasRenderingContext2D): void {
+        super.render(context);
+    }
 }
