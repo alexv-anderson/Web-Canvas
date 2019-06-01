@@ -1,6 +1,6 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point } from "./common.js";
-import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer, InteractiveSpriteContainer, SpriteContainerConfig, StaticContainerConfig, InteractiveContainerConfig } from "./sprite.js";
+import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer, InteractiveSpriteContainer, PassiveSpriteContainer, StaticContainerConfig, InteractiveContainerConfig } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
@@ -30,20 +30,20 @@ class SpriteContainerBlock extends Block<SpriteContainer> {
     constructor(key: string, row: number, column: number, spriteMap: SpriteMap) {
         super(row, column);
 
-        this._container = new SpriteContainer({key: key, spriteMap: spriteMap});
+        this._container = new PassiveSpriteContainer({key: key, spriteMap: spriteMap});
     }
 
-    protected get contents(): SpriteContainer {
+    protected get contents(): PassiveSpriteContainer {
         return this._container;
     }
 
-    private _container: SpriteContainer;
+    private _container: PassiveSpriteContainer;
 }
 
 /**
  * Represents a layer of sprites which for the background/floor
  */
-export class SpriteLayer extends BlockGridLayer<SpriteContainer> {
+export class SpriteLayer extends BlockGridLayer<PassiveSpriteContainer> {
     /**
      * Initializes the layer
      * @param config The configuration for the layer
@@ -123,7 +123,7 @@ export abstract class Actor<IA extends InputAccumalator> extends InteractiveSpri
  * Represents the configuration of a world with sprite layers an possibily Actors
  */
 export interface LayeredSpriteWorldConfig<SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>, SMLCD extends SpriteMultilayerLayoutConfigDefaults, SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SMLC>, SpriteConfig {
-    container: SpriteContainerConfig
+
 }
 
 /**
@@ -141,39 +141,40 @@ export abstract class GenericPureSpriteWorld<
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
 
-        let spriteContainerMap = new Map<String, SpriteContainer>();
+        config.spriteSources.forEach(source => this.spriteMap.loadSpriteSource(source));
 
-        if(config.container.default) {
-            config.container.default.forEach(keys => spriteContainerMap.set(
-                keys.key,
-                new SpriteContainer({key: keys.spriteKey, spriteMap: this.spriteMap})
-            ));
-        }
-
-        if(config.container.custom) {
-            if(config.container.custom.static) {
-                for(let containerKey in config.container.custom.static) {
-                    let staticContainer = this.constructStaticSpriteContainer(
-                        containerKey,
-                        config.container.custom.static[containerKey]
-                    );
-                    staticContainer.spriteMap = this.spriteMap;
-                }
+        if(config.containers) {
+            if(config.containers.default) {
+                config.containers.default.forEach(keys => this.passiveContainerMap.set(
+                    keys.key,
+                    new PassiveSpriteContainer({key: keys.spriteKey, spriteMap: this.spriteMap})
+                ));
             }
 
-            if(config.container.custom.interactive) {
-                for(let containerKey in config.container.custom.interactive) {
-                    let interactiveContainer = this.constructInteractiveSpriteContainer(
+            if(config.containers.custom) {
+                if(config.containers.custom.passive) {
+                    for(let containerKey in config.containers.custom.passive) {
+                        let passiveContainer = this.constructPassiveSpriteContainer(
                             containerKey,
-                            config.container.custom.interactive[containerKey]
-                    );
-                    interactiveContainer.spriteMap = this.spriteMap;
-                    this.actors.push(interactiveContainer);
+                            config.containers.custom.passive[containerKey]
+                        );
+                        passiveContainer.spriteMap = this.spriteMap;
+                        this.passiveContainerMap.set(containerKey, passiveContainer);
+                    }
+                }
+
+                if(config.containers.custom.interactive) {
+                    for(let containerKey in config.containers.custom.interactive) {
+                        let interactiveContainer = this.constructInteractiveSpriteContainer(
+                                containerKey,
+                                config.containers.custom.interactive[containerKey]
+                        );
+                        interactiveContainer.spriteMap = this.spriteMap;
+                        this.interactiveContainerMap.set(containerKey, interactiveContainer);
+                    }
                 }
             }
         }
-
-        config.spriteSources.forEach(spriteSource => this.spriteMap.loadSpriteSource(spriteSource));
     }
 
     protected onLayerConfigurationLoaded(config: SMLC): void {
@@ -194,7 +195,7 @@ export abstract class GenericPureSpriteWorld<
 
     protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;
 
-    protected constructStaticSpriteContainer(containerKey: string, config: StaticContainerConfig): SpriteContainer | never {
+    protected constructPassiveSpriteContainer(containerKey: string, config: StaticContainerConfig): PassiveSpriteContainer | never {
         throw new Error("No matching static sprite container for " + containerKey);
     }
     protected constructInteractiveSpriteContainer(key: string, config: InteractiveContainerConfig): InteractiveSpriteContainer<IA> | never {
@@ -206,7 +207,8 @@ export abstract class GenericPureSpriteWorld<
 
         this.spriteMap.updateAllSprites(dt);
 
-        this.actors.forEach((actor: InteractiveSpriteContainer<IA>) => { actor.update(dt, this.inputAccumalator); })
+        this.passiveContainerMap.forEach(passiveContainer => passiveContainer.update(dt));
+        this.interactiveContainerMap.forEach(interactiveContainer => interactiveContainer.update(dt, this.inputAccumalator));
     }
 
     protected abstract get inputAccumalator(): IA;
@@ -217,13 +219,14 @@ export abstract class GenericPureSpriteWorld<
     public render(): void {
         super.render();
 
-        this.adhocSprites.forEach((as: { key: string, center: Point}) => { this.spriteMap.render(
-            this.drawingContext,
-            as.key,
-            as.center
-        )});
-
-        this.actors.forEach((actor: InteractiveSpriteContainer<IA>) => { actor.render(this.drawingContext); });
+        this.adhocSprites.forEach((as: { key: string, center: Point}) => {
+            this.spriteMap.render(this.drawingContext, as.key, as.center)
+            
+            let ic = this.interactiveContainerMap.get(as.key);
+            if(ic) {
+                ic.render(this.drawingContext);
+            }
+        });
     }
 
     /**
@@ -246,7 +249,8 @@ export abstract class GenericPureSpriteWorld<
 
     private spriteMap: SpriteMap = new SpriteMap();
 
-    private actors: Array<InteractiveSpriteContainer<IA>> = [];
+    private passiveContainerMap: Map<string, PassiveSpriteContainer> = new Map<string, PassiveSpriteContainer>();
+    private interactiveContainerMap: Map<string, InteractiveSpriteContainer<IA>> = new Map<string, InteractiveSpriteContainer<IA>>();
 }
 
 export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {

@@ -40,7 +40,7 @@ class MyWorld extends SimpleSpriteWorld {
 
     protected constructInteractiveSpriteContainer(key: string, actorConfig: InteractiveContainerConfig): InteractiveSpriteContainer<SimpleInputAccumalator> | never {
         if(key === "Soldier") {
-            return new Soldier(actorConfig as ActorConfig)
+            return new Soldier(actorConfig as ActorConfig);
         }
         
         return super.constructInteractiveSpriteContainer(key, actorConfig);
@@ -58,8 +58,10 @@ class MyWorld extends SimpleSpriteWorld {
                     this.inputAccumalator.mouseDownPoint.y,
                     "red",
                     2
-                )
+                );
             }
+
+            this.addAdHocSprite("Soldier", this.inputAccumalator.mouseDownPoint);
 
             this.lastClickPoint = this.inputAccumalator.mouseDownPoint;
         }
