@@ -1,7 +1,7 @@
 import { ActorConfig, Actor, SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { Point } from "./lib/common.js";
-import { InteractiveSpriteContainer, InteractiveContainerConfig } from "./lib/sprite.js";
+import { InteractiveSpriteContainer, InteractiveSpriteContainerConfig } from "./lib/container.js";
 
 /*
  * Only things which need to be implemented to create a new canvas world.
@@ -38,7 +38,7 @@ class MyWorld extends SimpleSpriteWorld {
         super.onConfigurationLoaded(config);
     }
 
-    protected constructInteractiveSpriteContainer(key: string, actorConfig: InteractiveContainerConfig): InteractiveSpriteContainer<SimpleInputAccumalator> | never {
+    protected constructInteractiveSpriteContainer(key: string, actorConfig: InteractiveSpriteContainerConfig): InteractiveSpriteContainer<SimpleInputAccumalator> | never {
         if(key === "Soldier") {
             return new Soldier(actorConfig as ActorConfig);
         }

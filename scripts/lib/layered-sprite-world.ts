@@ -1,6 +1,7 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point } from "./common.js";
-import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer, InteractiveSpriteContainer, PassiveSpriteContainer, StaticContainerConfig, InteractiveContainerConfig } from "./sprite.js";
+import { SpriteContainerConfig, SpriteContainer, InteractiveSpriteContainerConfig, PassiveSpriteContainer, PassiveSpriteContainerConfig, InteractiveSpriteContainer } from "./container.js";
+import { SpriteConfig, SpriteMap, MultiFrameSprite } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
@@ -80,7 +81,7 @@ export class SpriteLayer extends BlockGridLayer<PassiveSpriteContainer> {
 /**
  * Represtnes the configuration for an actor which is represented by sprites
  */
-export interface ActorConfig extends InteractiveContainerConfig {
+export interface ActorConfig extends InteractiveSpriteContainerConfig {
     location: Array<number>
     sprites: Array<string>
 }
@@ -123,7 +124,7 @@ export abstract class Actor<IA extends InputAccumalator> extends InteractiveSpri
  * Represents the configuration of a world with sprite layers an possibily Actors
  */
 export interface LayeredSpriteWorldConfig<SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>, SMLCD extends SpriteMultilayerLayoutConfigDefaults, SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SMLC>, SpriteConfig {
-
+    containers?: SpriteContainerConfig
 }
 
 /**
@@ -195,10 +196,10 @@ export abstract class GenericPureSpriteWorld<
 
     protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;
 
-    protected constructPassiveSpriteContainer(containerKey: string, config: StaticContainerConfig): PassiveSpriteContainer | never {
+    protected constructPassiveSpriteContainer(containerKey: string, config: PassiveSpriteContainerConfig): PassiveSpriteContainer | never {
         throw new Error("No matching static sprite container for " + containerKey);
     }
-    protected constructInteractiveSpriteContainer(key: string, config: InteractiveContainerConfig): InteractiveSpriteContainer<IA> | never {
+    protected constructInteractiveSpriteContainer(key: string, config: InteractiveSpriteContainerConfig): InteractiveSpriteContainer<IA> | never {
         throw new Error("No matching sprite for " + key);
     }
 
