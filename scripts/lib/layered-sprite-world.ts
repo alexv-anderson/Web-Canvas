@@ -97,11 +97,10 @@ export abstract class Actor<IA extends InputAccumalator> extends SpriteContainer
      * @param spriteIndex The index of the actor's initial sprite
      * @param sprites An array of the actor's sprites
      */
-    // constructor(location: Point, spriteIndex: number, sprites: Array<string>, spriteMap: SpriteMap) {
     constructor(config: ActorConfig) {
         super();
 
-        this.location = new Point(config.location[0], config.location[1]);
+        this.move(config.location[0], config.location[1]);
         this.spriteIndex = 0;
         this.spriteKeys = config.sprites;
     }
@@ -120,20 +119,9 @@ export abstract class Actor<IA extends InputAccumalator> extends SpriteContainer
     public render(context: CanvasRenderingContext2D): void {
         this.spriteKey = this.spriteKeys[this.spriteIndex];
 
-        super.renderAt(
-            context,
-            new Point(
-                this.location.x,
-                this.location.y
-            )
-        );
+        super.render(context);
     }
 
-    protected move(dx: number, dy: number): void {
-        this.location = this.location.plus(dx, dy);
-    }
-
-    private location: Point;
     private spriteIndex: number;
     private spriteKeys: Array<string>;
 }

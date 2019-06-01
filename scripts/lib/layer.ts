@@ -1,5 +1,5 @@
 
-import { Point, Renderable, RenderableAtPoint, Updatable } from "./common.js";
+import { Placeable, Point, Renderable, Updatable } from "./common.js";
 
 /**
  * Represents a layer of sprites which for the background/floor
@@ -54,7 +54,7 @@ export class LayeredLayout<L extends Layer> implements Renderable {
     private layers: Array<L> = [];
 }
 
-export abstract class Block<C extends Updatable & RenderableAtPoint> implements RenderableAtPoint, Updatable {
+export abstract class Block<C extends Placeable & Renderable & Updatable> implements Placeable, Renderable, Updatable {
     constructor(row: number, column: number) {
         this._row = row;
         this._column = column;
@@ -64,8 +64,8 @@ export abstract class Block<C extends Updatable & RenderableAtPoint> implements 
         this.contents.update(dt);
     }
 
-    public renderAt(context: CanvasRenderingContext2D, point: Point): void {            
-        this.contents.renderAt(context, point);
+    public render(context: CanvasRenderingContext2D): void {
+        this.contents.render(context);
     }
 
     protected abstract get contents(): C;
@@ -77,11 +77,18 @@ export abstract class Block<C extends Updatable & RenderableAtPoint> implements 
         return this._column;
     }
 
+    public get location(): Point {
+        return this.contents.location;
+    }
+    public move(dx: number, dy: number): void {
+        this.contents.move(dx, dy);
+    }
+
     private _row: number;
     private _column: number;
 }
 
-export class BlockGridLayer<C extends RenderableAtPoint & Updatable> implements Layer {
+export class BlockGridLayer<C extends Placeable & Renderable & Updatable> implements Layer {
     constructor(rowHeight: number, columnWidth: number) {
         this._blocks = new Array<Block<C>>();
 
@@ -96,16 +103,18 @@ export class BlockGridLayer<C extends RenderableAtPoint & Updatable> implements 
     }
 
     public render(context: CanvasRenderingContext2D): void {
-        this._blocks.forEach(b => b.renderAt(
-            context,
-            new Point(
-                (b.column * this._columnStepSize) + this._columnOffset,  // which column
-                (b.row * this._rowStepSize) + this._rowOffset            // which row
-            )
-        ));
+        this._blocks.forEach(b => b.render(context));
     }
 
     protected addBlock(block: Block<C>): void {
+        let blockX = (block.column * this._columnStepSize) + this._columnOffset;  // which column
+        let blockY = (block.row * this._rowStepSize) + this._rowOffset;           // which row
+
+        block.move(
+            blockX - block.location.x,
+            blockY - block.location.y
+        );
+
         this._blocks.push(block);
     }
 

@@ -1,5 +1,5 @@
 
-import { Point, RenderableAtPoint, Updatable } from "./common.js"
+import { Placeable, Point, Renderable, Updatable } from "./common.js"
 import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
@@ -41,6 +41,10 @@ interface MultiFrameSpriteProperties extends SpriteProperties {
         loop: boolean,
         autoStart: boolean
     }
+}
+
+export interface RenderableAtPoint {
+    renderAt(context: CanvasRenderingContext2D, point: Point): void;
 }
 
 /**
@@ -380,11 +384,14 @@ export class SpriteMap {
 }
 
 
-export class SpriteContainer implements Updatable, RenderableAtPoint {
-    constructor(defaults?: {key?: string, spriteMap?: SpriteMap}) {
+export class SpriteContainer implements Updatable, Renderable, Placeable {
+    constructor(defaults?: {key?: string, spriteMap?: SpriteMap, location?: Point}) {
+        this._location = new Point(0, 0);
+
         if(defaults) {
             this.spriteKey = defaults.key;
             this._spriteMap = defaults.spriteMap;
+            this._location = defaults.location !== undefined ? defaults.location : this._location;
         }
 
         this._centerRender = true;
@@ -394,13 +401,14 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
 
     }
 
-    public renderAt(context: CanvasRenderingContext2D, point: Point): void {
+    public render(context: CanvasRenderingContext2D): void {
         if(this._spriteMap && this.spriteKey) {
 
             let sprite = this._spriteMap.getSprite(this.spriteKey);
 
             if(sprite) {
 
+                let point = this.location;
                 if(this.isSpriteRenderCentered) {
                     point = point.plus(
                         - (sprite.frameWidth / 2),
@@ -430,8 +438,16 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
     public set spriteMap(spriteMap: SpriteMap | undefined) {
         this._spriteMap = spriteMap;
     }
+
+    public get location(): Point {
+        return this._location;
+    }
+    public move(dx: number, dy: number): void {
+        this._location = this._location.plus(dx, dy);
+    }
     
     private _spriteMap: SpriteMap | undefined;
     private _spriteKey: string | undefined;
+    private _location: Point;
     private _centerRender: boolean;
 }

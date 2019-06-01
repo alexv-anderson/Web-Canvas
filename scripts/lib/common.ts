@@ -7,8 +7,9 @@ export interface Renderable {
     render(context: CanvasRenderingContext2D): void;
 }
 
-export interface RenderableAtPoint {
-    renderAt(context: CanvasRenderingContext2D, point: Point): void;
+export interface Placeable {
+    location: Point;
+    move(dx: number, dy: number): void;
 }
 
 /**
