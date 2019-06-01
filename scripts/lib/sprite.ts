@@ -5,6 +5,7 @@ import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
     spriteSources: Array<SpriteSheetSource>
+    containers?: SpriteContainerConfig
 }
 interface SpriteSheetSource {
     baseURL: string,
@@ -380,7 +381,7 @@ export class SpriteMap {
 }
 
 
-export class SpriteContainer implements Updatable, Renderable, Placeable {
+export abstract class SpriteContainer implements Updatable, Renderable, Placeable {
     constructor(defaults?: {key?: string, spriteMap?: SpriteMap, location?: Point}) {
         this._location = new Point(0, 0);
 
@@ -452,6 +453,10 @@ export class SpriteContainer implements Updatable, Renderable, Placeable {
     private _centerRender: boolean;
 }
 
+export class PassiveSpriteContainer extends SpriteContainer {
+
+}
+
 /**
  * Represents a sprite container which at can respond to input
  */
@@ -477,7 +482,7 @@ export interface SpriteContainerConfig {
         spriteKey: string;
     }];
     custom?: {
-        static?: {
+        passive?: {
             [key: string]: StaticContainerConfig;
         };
         interactive?: {

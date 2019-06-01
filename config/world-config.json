@@ -112,7 +112,7 @@
             }
         ]
     },
-    "container": {
+    "containers": {
         "default": [
             {
                 "key": "g",
