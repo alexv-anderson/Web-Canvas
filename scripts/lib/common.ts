@@ -25,6 +25,11 @@ export class Point {
         this._y = y;
     }
 
+    /**
+     * Returns a new point which is the result of change the x and y coordinates by the givne amounts
+     * @param dx The change in the x-axis
+     * @param dy The change in the y-axis
+     */
     public plus(dx: number, dy: number): Point {
         return new Point(this.x + dx, this.y + dy);
     }

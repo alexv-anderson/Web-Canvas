@@ -30,7 +30,7 @@ class SpriteContainerBlock extends Block<SpriteContainer> {
     constructor(key: string, row: number, column: number, spriteMap: SpriteMap) {
         super(row, column);
 
-        this._container = new SpriteContainer(key, spriteMap);
+        this._container = new SpriteContainer({key: key, spriteMap: spriteMap});
     }
 
     protected get contents(): SpriteContainer {
@@ -89,7 +89,7 @@ export interface ActorConfig {
 /**
  * Represents something at can move due to user input on the canvas
  */
-export abstract class Actor<IA extends InputAccumalator> {
+export abstract class Actor<IA extends InputAccumalator> extends SpriteContainer {
 
     /**
      * Initializes the actor
@@ -97,34 +97,36 @@ export abstract class Actor<IA extends InputAccumalator> {
      * @param spriteIndex The index of the actor's initial sprite
      * @param sprites An array of the actor's sprites
      */
-    constructor(location: Point, spriteIndex: number, sprites: Array<string>) {
-        this.location = location;
-        this.spriteIndex = spriteIndex;
-        this.spriteKeys = sprites;
+    // constructor(location: Point, spriteIndex: number, sprites: Array<string>, spriteMap: SpriteMap) {
+    constructor(config: ActorConfig) {
+        super();
+
+        this.location = new Point(config.location[0], config.location[1]);
+        this.spriteIndex = 0;
+        this.spriteKeys = config.sprites;
     }
 
     /**
      * Updates the actor using input from the user
      * @param inputAccumalator Input which has been supplied by the user
      */
-    public abstract update(inputAccumalator: IA): void;
+    public abstract update(dt: number, inputAccumalator?: IA): void;
 
     /**
      * Renders the actor on the canvas
      * @param spriteMap A map from keys to sprites
      * @param context The rendering context of the canvas on which the actor should be rendered
      */
-    public render(spriteMap: SpriteMap, context: CanvasRenderingContext2D): void {
-        let sprite = spriteMap.getSprite(this.spriteKeys[this.spriteIndex]);
-        if(sprite) {
-            sprite.renderAt(
-                context,
-                new Point(
-                    this.location.x,
-                    this.location.y
-                )
-            );
-        }
+    public render(context: CanvasRenderingContext2D): void {
+        this.spriteKey = this.spriteKeys[this.spriteIndex];
+
+        super.renderAt(
+            context,
+            new Point(
+                this.location.x,
+                this.location.y
+            )
+        );
     }
 
     protected move(dx: number, dy: number): void {
@@ -162,8 +164,11 @@ export abstract class GenericPureSpriteWorld<
 
         if(config.actorConfigs) {
             for(let name in config.actorConfigs) {
-                for(let actorConfig of config.actorConfigs[name])
-                    this.actors.push(this.constructActorAt(name, actorConfig));
+                for(let actorConfig of config.actorConfigs[name]) {
+                    let actor = this.constructActorAt(name, actorConfig);
+                    actor.spriteMap = this.spriteMap;
+                    this.actors.push(actor);
+                }
             }
         }
 
@@ -197,7 +202,7 @@ export abstract class GenericPureSpriteWorld<
 
         this.spriteMap.updateAllSprites(dt);
 
-        this.actors.forEach((actor: Actor<IA>) => { actor.update(this.inputAccumalator); })
+        this.actors.forEach((actor: Actor<IA>) => { actor.update(dt, this.inputAccumalator); })
     }
 
     protected abstract get inputAccumalator(): IA;
@@ -214,7 +219,7 @@ export abstract class GenericPureSpriteWorld<
             as.center
         )});
 
-        this.actors.forEach((actor: Actor<IA>) => { actor.render(this.spriteMap, this.drawingContext); });
+        this.actors.forEach((actor: Actor<IA>) => { actor.render(this.drawingContext); });
     }
 
     /**

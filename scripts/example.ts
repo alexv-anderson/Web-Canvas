@@ -7,21 +7,23 @@ import { Point } from "./lib/common.js";
  */
 
 export class Soldier extends Actor<SimpleInputAccumalator> {
-    public update(inputAccumalator: SimpleInputAccumalator): void {
+    public update(dt: number, inputAccumalator?: SimpleInputAccumalator): void {
         let dx: number = 0;
         let dy: number = 0;
 
-        if(inputAccumalator.arrowUpDown) {
-            dy -= 5;
-        }
-        if(inputAccumalator.arrowDownDown) {
-            dy += 5;
-        }
-        if(inputAccumalator.arrowLeftDown) {
-            dx -= 5;
-        }
-        if(inputAccumalator.arrowRightDown) {
-            dx += 5;
+        if(inputAccumalator) {
+            if(inputAccumalator.arrowUpDown) {
+                dy -= 5;
+            }
+            if(inputAccumalator.arrowDownDown) {
+                dy += 5;
+            }
+            if(inputAccumalator.arrowLeftDown) {
+                dx -= 5;
+            }
+            if(inputAccumalator.arrowRightDown) {
+                dx += 5;
+            }
         }
 
         this.move(dx, dy);
@@ -35,11 +37,7 @@ class MyWorld extends SimpleSpriteWorld {
 
     protected constructActorAt(key: string, actorConfig: ActorConfig): Actor<SimpleInputAccumalator> | never {
         if(key === "Soldier") {
-            return new Soldier(
-                new Point(actorConfig.location[0], actorConfig.location[1]),
-                actorConfig.isi,
-                actorConfig.sprites
-            )
+            return new Soldier(actorConfig)
         }
         
         return super.constructActorAt(key, actorConfig);

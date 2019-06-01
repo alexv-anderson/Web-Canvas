@@ -77,8 +77,6 @@ export class Sprite implements RenderableAtPoint, Updatable {
         this._imageBaseX = 0;
         this._imageBaseY = 0;
 
-        this._centerRender = true;
-
         if(options !== undefined) {
             this._frameHeight = options.frameHeight || this._frameHeight;
             this._frameWidth = options.frameWidth || this._frameWidth;
@@ -107,8 +105,8 @@ export class Sprite implements RenderableAtPoint, Updatable {
             srcY,
             this.frameWidth,
             this.frameHeight,
-            this._centerRender ? x - (this.frameWidth / 2) : x,
-            this._centerRender ? y - (this.frameHeight / 2) : y,
+            x,
+            y,
             this.frameWidth,
             this.frameHeight
         );
@@ -152,8 +150,6 @@ export class Sprite implements RenderableAtPoint, Updatable {
 
     private _frameHeight: number;
     private _frameWidth: number;
-
-    private _centerRender: boolean;
 }
 
 export class MultiFrameSprite extends Sprite {
@@ -385,9 +381,13 @@ export class SpriteMap {
 
 
 export class SpriteContainer implements Updatable, RenderableAtPoint {
-    constructor(key: string, spriteMap: SpriteMap) {
-        this._spriteKey = key;
-        this._spriteMap = spriteMap;
+    constructor(defaults?: {key?: string, spriteMap?: SpriteMap}) {
+        if(defaults) {
+            this.spriteKey = defaults.key;
+            this._spriteMap = defaults.spriteMap;
+        }
+
+        this._centerRender = true;
     }
 
     public update(dt: number): void {
@@ -395,19 +395,43 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
     }
 
     public renderAt(context: CanvasRenderingContext2D, point: Point): void {
-        let sprite = this._spriteMap.getSprite(this.spriteKey);
-        if(sprite) {
-            sprite.renderAt(context, point);
+        if(this._spriteMap && this.spriteKey) {
+
+            let sprite = this._spriteMap.getSprite(this.spriteKey);
+
+            if(sprite) {
+
+                if(this.isSpriteRenderCentered) {
+                    point = point.plus(
+                        - (sprite.frameWidth / 2),
+                        - (sprite.frameHeight / 2)
+                    );
+                }
+
+                sprite.renderAt(context, point);
+            }
         }
     }
 
-    protected get spriteKey(): string {
+    public get isSpriteRenderCentered(): boolean {
+        return this._centerRender;
+    }
+    public set centerSpriteRender(center: boolean) {
+        this._centerRender = center;
+    }
+
+    protected get spriteKey(): string | undefined {
         return this._spriteKey;
     }
-    protected set spriteKey(key: string) {
+    protected set spriteKey(key: string | undefined) {
         this._spriteKey = key;
     }
+
+    public set spriteMap(spriteMap: SpriteMap | undefined) {
+        this._spriteMap = spriteMap;
+    }
     
-    private _spriteMap: SpriteMap;
-    private _spriteKey: string;
+    private _spriteMap: SpriteMap | undefined;
+    private _spriteKey: string | undefined;
+    private _centerRender: boolean;
 }
