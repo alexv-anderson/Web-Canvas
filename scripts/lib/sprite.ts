@@ -470,3 +470,26 @@ export class InteractiveSpriteContainer<IA extends InputAccumalator> extends Spr
         super.render(context);
     }
 }
+
+export interface SpriteContainerConfig {
+    default?: [{
+        key: string;
+        spriteKey: string;
+    }];
+    custom?: {
+        static?: {
+            [key: string]: StaticContainerConfig;
+        };
+        interactive?: {
+            [key: string]: InteractiveContainerConfig;
+        };
+    }
+}
+
+export interface StaticContainerConfig {
+    spriteKey: string;
+}
+
+export interface InteractiveContainerConfig {
+
+}

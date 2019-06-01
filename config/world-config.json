@@ -112,13 +112,20 @@
             }
         ]
     },
-    "actorConfigs": {
-        "Soldier": [
+    "container": {
+        "default": [
             {
-                "location": [70, 30],
-                "isi": 0,
-                "sprites": [ "rsl" ]
+                "key": "g",
+                "spriteKey": "g"
             }
-        ]
-    }
+        ],
+        "custom": {
+            "interactive": {
+                "Soldier": {
+                    "location": [ 70, 30 ],
+                    "sprites": [ "rsl" ]
+                }
+            }
+        }
+}
 }

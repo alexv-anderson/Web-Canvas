@@ -1,6 +1,6 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point } from "./common.js";
-import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer, InteractiveSpriteContainer } from "./sprite.js";
+import { SpriteConfig, SpriteMap, MultiFrameSprite, SpriteContainer, InteractiveSpriteContainer, SpriteContainerConfig, StaticContainerConfig, InteractiveContainerConfig } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
@@ -80,9 +80,8 @@ export class SpriteLayer extends BlockGridLayer<SpriteContainer> {
 /**
  * Represtnes the configuration for an actor which is represented by sprites
  */
-export interface ActorConfig {
-    location: Array<number>,
-    isi: number,
+export interface ActorConfig extends InteractiveContainerConfig {
+    location: Array<number>
     sprites: Array<string>
 }
 
@@ -124,9 +123,7 @@ export abstract class Actor<IA extends InputAccumalator> extends InteractiveSpri
  * Represents the configuration of a world with sprite layers an possibily Actors
  */
 export interface LayeredSpriteWorldConfig<SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>, SMLCD extends SpriteMultilayerLayoutConfigDefaults, SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SMLC>, SpriteConfig {
-    actorConfigs?: {
-        [key: string]: [ActorConfig]
-    }
+    container: SpriteContainerConfig
 }
 
 /**
@@ -144,12 +141,34 @@ export abstract class GenericPureSpriteWorld<
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
 
-        if(config.actorConfigs) {
-            for(let name in config.actorConfigs) {
-                for(let actorConfig of config.actorConfigs[name]) {
-                    let actor = this.constructActorAt(name, actorConfig);
-                    actor.spriteMap = this.spriteMap;
-                    this.actors.push(actor);
+        let spriteContainerMap = new Map<String, SpriteContainer>();
+
+        if(config.container.default) {
+            config.container.default.forEach(keys => spriteContainerMap.set(
+                keys.key,
+                new SpriteContainer({key: keys.spriteKey, spriteMap: this.spriteMap})
+            ));
+        }
+
+        if(config.container.custom) {
+            if(config.container.custom.static) {
+                for(let containerKey in config.container.custom.static) {
+                    let staticContainer = this.constructStaticSpriteContainer(
+                        containerKey,
+                        config.container.custom.static[containerKey]
+                    );
+                    staticContainer.spriteMap = this.spriteMap;
+                }
+            }
+
+            if(config.container.custom.interactive) {
+                for(let containerKey in config.container.custom.interactive) {
+                    let interactiveContainer = this.constructInteractiveSpriteContainer(
+                            containerKey,
+                            config.container.custom.interactive[containerKey]
+                    );
+                    interactiveContainer.spriteMap = this.spriteMap;
+                    this.actors.push(interactiveContainer);
                 }
             }
         }
@@ -175,7 +194,10 @@ export abstract class GenericPureSpriteWorld<
 
     protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;
 
-    protected constructActorAt(key: string, actorConfig: ActorConfig): Actor<IA> | never {
+    protected constructStaticSpriteContainer(containerKey: string, config: StaticContainerConfig): SpriteContainer | never {
+        throw new Error("No matching static sprite container for " + containerKey);
+    }
+    protected constructInteractiveSpriteContainer(key: string, config: InteractiveContainerConfig): InteractiveSpriteContainer<IA> | never {
         throw new Error("No matching sprite for " + key);
     }
 
@@ -184,7 +206,7 @@ export abstract class GenericPureSpriteWorld<
 
         this.spriteMap.updateAllSprites(dt);
 
-        this.actors.forEach((actor: Actor<IA>) => { actor.update(dt, this.inputAccumalator); })
+        this.actors.forEach((actor: InteractiveSpriteContainer<IA>) => { actor.update(dt, this.inputAccumalator); })
     }
 
     protected abstract get inputAccumalator(): IA;
@@ -201,7 +223,7 @@ export abstract class GenericPureSpriteWorld<
             as.center
         )});
 
-        this.actors.forEach((actor: Actor<IA>) => { actor.render(this.drawingContext); });
+        this.actors.forEach((actor: InteractiveSpriteContainer<IA>) => { actor.render(this.drawingContext); });
     }
 
     /**
@@ -224,7 +246,7 @@ export abstract class GenericPureSpriteWorld<
 
     private spriteMap: SpriteMap = new SpriteMap();
 
-    private actors: Array<Actor<IA>> = [];
+    private actors: Array<InteractiveSpriteContainer<IA>> = [];
 }
 
 export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
