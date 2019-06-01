@@ -98,6 +98,75 @@ export class InteractiveSpriteContainer<IA extends InputAccumalator> extends Spr
     }
 }
 
+export class ContainerCabinet<IA extends InputAccumalator> {
+    public fill(
+        config: SpriteContainerConfig, spriteMap: SpriteMap,
+        constructPassiveSpriteContainer: (containerKey: string, config: PassiveSpriteContainerConfig) => PassiveSpriteContainer,
+        constructInteractiveSpriteContainer: (containerKey: string, config: InteractiveSpriteContainerConfig) => InteractiveSpriteContainer<IA>): void {
+
+            if(config.default) {
+                config.default.forEach(keys => this.passiveContainerMap.set(
+                    keys.key,
+                    new PassiveSpriteContainer({key: keys.spriteKey, spriteMap: spriteMap})
+                ));
+            }
+
+            if(config.custom) {
+                if(config.custom.passive) {
+                    for(let containerKey in config.custom.passive) {
+                        let passiveContainer = constructPassiveSpriteContainer(
+                            containerKey,
+                            config.custom.passive[containerKey]
+                        );
+                        passiveContainer.spriteMap = spriteMap;
+                        this.passiveContainerMap.set(containerKey, passiveContainer);
+                    }
+                }
+
+                if(config.custom.interactive) {
+                    for(let containerKey in config.custom.interactive) {
+                        let interactiveContainer = constructInteractiveSpriteContainer(
+                                containerKey,
+                                config.custom.interactive[containerKey]
+                        );
+                        interactiveContainer.spriteMap = spriteMap;
+                        this.interactiveContainerMap.set(containerKey, interactiveContainer);
+                    }
+                }
+            }
+    }
+
+    public update(dt: number, inputAccumalator: IA): void {
+        this.passiveContainerMap.forEach(passiveContainer => passiveContainer.update(dt));
+        this.interactiveContainerMap.forEach(interactiveContainer => interactiveContainer.update(dt, inputAccumalator));
+    }
+
+    public render(context: CanvasRenderingContext2D, containerKey: string): void {
+        let container = this.getContainer(containerKey);
+        if(container) {
+            container.render(context);
+        }
+    }
+
+    public getContainer(containerKey: string): SpriteContainer | undefined {
+        let container = this.passiveContainerMap.get(containerKey);
+        if(container) {
+            return container;
+        }
+
+        container = this.interactiveContainerMap.get(containerKey);
+        if(container) {
+            return container;
+        }
+
+        throw new Error("No container found for " + containerKey);
+
+    }
+
+    private passiveContainerMap: Map<string, PassiveSpriteContainer> = new Map<string, PassiveSpriteContainer>();
+    private interactiveContainerMap: Map<string, InteractiveSpriteContainer<IA>> = new Map<string, InteractiveSpriteContainer<IA>>();
+}
+
 export interface SpriteContainerConfig {
     default?: [{
         key: string;

@@ -1,6 +1,6 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point } from "./common.js";
-import { SpriteContainerConfig, SpriteContainer, InteractiveSpriteContainerConfig, PassiveSpriteContainer, PassiveSpriteContainerConfig, InteractiveSpriteContainer } from "./container.js";
+import { SpriteContainerConfig, SpriteContainer, InteractiveSpriteContainerConfig, PassiveSpriteContainer, PassiveSpriteContainerConfig, InteractiveSpriteContainer, ContainerCabinet } from "./container.js";
 import { SpriteConfig, SpriteMap, MultiFrameSprite } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
@@ -145,36 +145,12 @@ export abstract class GenericPureSpriteWorld<
         config.spriteSources.forEach(source => this.spriteMap.loadSpriteSource(source));
 
         if(config.containers) {
-            if(config.containers.default) {
-                config.containers.default.forEach(keys => this.passiveContainerMap.set(
-                    keys.key,
-                    new PassiveSpriteContainer({key: keys.spriteKey, spriteMap: this.spriteMap})
-                ));
-            }
-
-            if(config.containers.custom) {
-                if(config.containers.custom.passive) {
-                    for(let containerKey in config.containers.custom.passive) {
-                        let passiveContainer = this.constructPassiveSpriteContainer(
-                            containerKey,
-                            config.containers.custom.passive[containerKey]
-                        );
-                        passiveContainer.spriteMap = this.spriteMap;
-                        this.passiveContainerMap.set(containerKey, passiveContainer);
-                    }
-                }
-
-                if(config.containers.custom.interactive) {
-                    for(let containerKey in config.containers.custom.interactive) {
-                        let interactiveContainer = this.constructInteractiveSpriteContainer(
-                                containerKey,
-                                config.containers.custom.interactive[containerKey]
-                        );
-                        interactiveContainer.spriteMap = this.spriteMap;
-                        this.interactiveContainerMap.set(containerKey, interactiveContainer);
-                    }
-                }
-            }
+            this.containerCabinet.fill(
+                config.containers,
+                this.spriteMap,
+                this.constructPassiveSpriteContainer,
+                this.constructInteractiveSpriteContainer
+            );
         }
     }
 
@@ -208,8 +184,7 @@ export abstract class GenericPureSpriteWorld<
 
         this.spriteMap.updateAllSprites(dt);
 
-        this.passiveContainerMap.forEach(passiveContainer => passiveContainer.update(dt));
-        this.interactiveContainerMap.forEach(interactiveContainer => interactiveContainer.update(dt, this.inputAccumalator));
+        this.containerCabinet.update(dt, this.inputAccumalator);
     }
 
     protected abstract get inputAccumalator(): IA;
@@ -223,10 +198,7 @@ export abstract class GenericPureSpriteWorld<
         this.adhocSprites.forEach((as: { key: string, center: Point}) => {
             this.spriteMap.render(this.drawingContext, as.key, as.center)
             
-            let ic = this.interactiveContainerMap.get(as.key);
-            if(ic) {
-                ic.render(this.drawingContext);
-            }
+            this.containerCabinet.render(this.drawingContext, as.key);
         });
     }
 
@@ -249,9 +221,7 @@ export abstract class GenericPureSpriteWorld<
     private adhocSprites: Array<{ key: string, center: Point}> = [];
 
     private spriteMap: SpriteMap = new SpriteMap();
-
-    private passiveContainerMap: Map<string, PassiveSpriteContainer> = new Map<string, PassiveSpriteContainer>();
-    private interactiveContainerMap: Map<string, InteractiveSpriteContainer<IA>> = new Map<string, InteractiveSpriteContainer<IA>>();
+    private containerCabinet: ContainerCabinet<IA> = new ContainerCabinet<IA>();
 }
 
 export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
