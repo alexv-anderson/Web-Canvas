@@ -1,13 +1,13 @@
-import { ActorConfig, Actor, SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig } from "./lib/layered-sprite-world.js";
+import { InteractiveInstance, SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig, InstanceConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
-import { Point } from "./lib/common.js";
-import { InteractiveSpriteContainer, InteractiveSpriteContainerConfig } from "./lib/container.js";
+import { Point, RenderableAtPoint } from "./lib/common.js";
+import { InteractiveSpriteContainerConfig, SpriteContainer } from "./lib/container.js";
 
 /*
  * Only things which need to be implemented to create a new canvas world.
  */
 
-export class Soldier extends Actor<SimpleInputAccumalator> {
+export class Soldier extends InteractiveInstance<SimpleInputAccumalator, SpriteContainer> {
     public update(dt: number, inputAccumalator?: SimpleInputAccumalator): void {
         super.update(dt);
 
@@ -38,12 +38,12 @@ class MyWorld extends SimpleSpriteWorld {
         super.onConfigurationLoaded(config);
     }
 
-    protected constructInteractiveSpriteContainer(key: string, actorConfig: InteractiveSpriteContainerConfig): InteractiveSpriteContainer<SimpleInputAccumalator> | never {
+    protected constructInteractiveInstance(key: string, actorConfig: InstanceConfig<RenderableAtPoint>): InteractiveInstance<SimpleInputAccumalator, RenderableAtPoint> | never {
         if(key === "Soldier") {
-            return new Soldier(actorConfig as ActorConfig);
+            return new Soldier(actorConfig as InstanceConfig<SpriteContainer>);
         }
         
-        return super.constructInteractiveSpriteContainer(key, actorConfig);
+        return super.constructInteractiveInstance(key, actorConfig);
     }
 
     public onUpdate(dt: number): void {
@@ -60,8 +60,6 @@ class MyWorld extends SimpleSpriteWorld {
                     2
                 );
             }
-
-            this.addAdHocSprite("Soldier", this.inputAccumalator.mouseDownPoint);
 
             this.lastClickPoint = this.inputAccumalator.mouseDownPoint;
         }

@@ -1,6 +1,5 @@
 
-import { Placeable, Point, Renderable, Updatable } from "./common.js"
-import { InputAccumalator } from "./input.js";
+import { Point, RenderableAtPoint } from "./common.js"
 import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
@@ -42,10 +41,6 @@ interface MultiFrameSpriteProperties extends SpriteProperties {
         loop: boolean,
         autoStart: boolean
     }
-}
-
-export interface RenderableAtPoint {
-    renderAt(context: CanvasRenderingContext2D, point: Point): void;
 }
 
 /**

@@ -1,17 +1,14 @@
 
-import { Placeable, Point, Renderable, Updatable } from "./common.js";
+import { Point, RenderableAtPoint, Updatable } from "./common.js";
 import { InputAccumalator } from "./input.js";
 import { SpriteMap } from "./sprite.js";
 
-export abstract class SpriteContainer implements Updatable, Renderable, Placeable {
-    constructor(defaults?: {key?: string, spriteMap?: SpriteMap, location?: Point}) {
-        this._location = new Point(0, 0);
+export class SpriteContainer implements Updatable, RenderableAtPoint {
+    constructor(spriteKeys: Array<string>, spriteMap: SpriteMap) {
+        this._spriteKeys = spriteKeys;
+        this._spriteMap = spriteMap;
 
-        if(defaults) {
-            this.spriteKey = defaults.key;
-            this._spriteMap = defaults.spriteMap;
-            this._location = defaults.location !== undefined ? defaults.location : this._location;
-        }
+        this._spriteIndex = 0;
 
         this._centerRender = true;
     }
@@ -21,26 +18,22 @@ export abstract class SpriteContainer implements Updatable, Renderable, Placeabl
      * @param dt The number of milliseconds which have passed since the last time this method was called
      */
     public update(dt: number): void {
-
+        
     }
 
-    public render(context: CanvasRenderingContext2D): void {
-        if(this._spriteMap && this.spriteKey) {
+    public renderAt(context: CanvasRenderingContext2D, point: Point): void {
+        let sprite = this._spriteMap.getSprite(this.spriteKey);
 
-            let sprite = this._spriteMap.getSprite(this.spriteKey);
+        if(sprite) {
 
-            if(sprite) {
-
-                let point = this.location;
-                if(this.isSpriteRenderCentered) {
-                    point = point.plus(
-                        - (sprite.frameWidth / 2),
-                        - (sprite.frameHeight / 2)
-                    );
-                }
-
-                sprite.renderAt(context, point);
+            if(this.isSpriteRenderCentered) {
+                point = point.plus(
+                    - (sprite.frameWidth / 2),
+                    - (sprite.frameHeight / 2)
+                );
             }
+
+            sprite.renderAt(context, point);
         }
     }
 
@@ -51,100 +44,40 @@ export abstract class SpriteContainer implements Updatable, Renderable, Placeabl
         this._centerRender = center;
     }
 
-    protected get spriteKey(): string | undefined {
-        return this._spriteKey;
+    protected get spriteKey(): string {
+        return this._spriteKeys[this._spriteIndex];
     }
-    protected set spriteKey(key: string | undefined) {
-        this._spriteKey = key;
-    }
-
-    public set spriteMap(spriteMap: SpriteMap | undefined) {
-        this._spriteMap = spriteMap;
+    protected set spriteIndex(index: number) {
+        this._spriteIndex = index;
     }
 
-    public get location(): Point {
-        return this._location;
-    }
-    public move(dx: number, dy: number): void {
-        this._location = this._location.plus(dx, dy);
-    }
-    
-    private _spriteMap: SpriteMap | undefined;
-    private _spriteKey: string | undefined;
-    private _location: Point;
+    private _spriteMap: SpriteMap;
+    private _spriteIndex: number;
+    private _spriteKeys: Array<string>;
     private _centerRender: boolean;
 }
 
-export class PassiveSpriteContainer extends SpriteContainer {
-
-}
-
-/**
- * Represents a sprite container which at can respond to input
- */
-export class InteractiveSpriteContainer<IA extends InputAccumalator> extends SpriteContainer {
-
-    /**
-     * Updates the actor using input from the user
-     * @param dt The number of milliseconds which have passed since the last time this method was called
-     * @param inputAccumalator Input which has been supplied by the user
-     */
-    public update(dt: number, inputAccumalator?: IA): void {
-        super.update(dt);
-    }
-
-    public render(context: CanvasRenderingContext2D): void {
-        super.render(context);
-    }
-}
 
 export class ContainerCabinet<IA extends InputAccumalator> {
     public fill(
-        config: SpriteContainerConfig, spriteMap: SpriteMap,
-        constructPassiveSpriteContainer: (containerKey: string, config: PassiveSpriteContainerConfig) => PassiveSpriteContainer,
-        constructInteractiveSpriteContainer: (containerKey: string, config: InteractiveSpriteContainerConfig) => InteractiveSpriteContainer<IA>): void {
+        config: SpriteContainerConfig, spriteMap: SpriteMap): void {
 
-            if(config.default) {
-                config.default.forEach(keys => this.passiveContainerMap.set(
-                    keys.key,
-                    new PassiveSpriteContainer({key: keys.spriteKey, spriteMap: spriteMap})
-                ));
-            }
-
-            if(config.custom) {
-                if(config.custom.passive) {
-                    for(let containerKey in config.custom.passive) {
-                        let passiveContainer = constructPassiveSpriteContainer(
-                            containerKey,
-                            config.custom.passive[containerKey]
-                        );
-                        passiveContainer.spriteMap = spriteMap;
-                        this.passiveContainerMap.set(containerKey, passiveContainer);
-                    }
-                }
-
-                if(config.custom.interactive) {
-                    for(let containerKey in config.custom.interactive) {
-                        let interactiveContainer = constructInteractiveSpriteContainer(
-                                containerKey,
-                                config.custom.interactive[containerKey]
-                        );
-                        interactiveContainer.spriteMap = spriteMap;
-                        this.interactiveContainerMap.set(containerKey, interactiveContainer);
-                    }
-                }
-            }
+        if(config.default) {
+            config.default.forEach(config => this.passiveContainerMap.set(
+                config.key,
+                new SpriteContainer(config.sprites, spriteMap)
+            ));
+        }
     }
 
-    public update(dt: number, inputAccumalator: IA): void {
+    public update(dt: number): void {
         this.passiveContainerMap.forEach(passiveContainer => passiveContainer.update(dt));
-        this.interactiveContainerMap.forEach(interactiveContainer => interactiveContainer.update(dt, inputAccumalator));
     }
 
-    public render(context: CanvasRenderingContext2D, containerKey: string): void {
+    public renderContainerAt(context: CanvasRenderingContext2D, containerKey: string, point: Point): void {
         let container = this.getContainer(containerKey);
         if(container) {
-            container.render(context);
+            container.renderAt(context, point);
         }
     }
 
@@ -154,23 +87,16 @@ export class ContainerCabinet<IA extends InputAccumalator> {
             return container;
         }
 
-        container = this.interactiveContainerMap.get(containerKey);
-        if(container) {
-            return container;
-        }
-
         throw new Error("No container found for " + containerKey);
-
     }
 
-    private passiveContainerMap: Map<string, PassiveSpriteContainer> = new Map<string, PassiveSpriteContainer>();
-    private interactiveContainerMap: Map<string, InteractiveSpriteContainer<IA>> = new Map<string, InteractiveSpriteContainer<IA>>();
+    private passiveContainerMap: Map<string, SpriteContainer> = new Map<string, SpriteContainer>();
 }
 
 export interface SpriteContainerConfig {
     default?: [{
         key: string;
-        spriteKey: string;
+        sprites: Array<string>;
     }];
     custom?: {
         passive?: {

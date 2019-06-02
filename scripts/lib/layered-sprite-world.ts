@@ -1,6 +1,6 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
-import { Point } from "./common.js";
-import { SpriteContainerConfig, SpriteContainer, InteractiveSpriteContainerConfig, PassiveSpriteContainer, PassiveSpriteContainerConfig, InteractiveSpriteContainer, ContainerCabinet } from "./container.js";
+import { Point, Placeable, Renderable, Updatable, RenderableAtPoint } from "./common.js";
+import { SpriteContainerConfig, SpriteContainer, ContainerCabinet } from "./container.js";
 import { SpriteConfig, SpriteMap, MultiFrameSprite } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
@@ -27,24 +27,24 @@ interface SpriteLayerLocations {
     [key: string]: Array<Array<number>>
 }
 
-class SpriteContainerBlock extends Block<SpriteContainer> {
+class SpriteContainerBlock extends Block<Instance<SpriteContainer>> {
     constructor(key: string, row: number, column: number, spriteMap: SpriteMap) {
         super(row, column);
 
-        this._container = new PassiveSpriteContainer({key: key, spriteMap: spriteMap});
+        this._container = new PassiveInstance<SpriteContainer>({ seed: new SpriteContainer([key], spriteMap) });
     }
 
-    protected get contents(): PassiveSpriteContainer {
+    protected get contents(): Instance<SpriteContainer> {
         return this._container;
     }
 
-    private _container: PassiveSpriteContainer;
+    private _container: Instance<SpriteContainer>;
 }
 
 /**
  * Represents a layer of sprites which for the background/floor
  */
-export class SpriteLayer extends BlockGridLayer<PassiveSpriteContainer> {
+export class SpriteLayer extends BlockGridLayer<Instance<SpriteContainer>> {
     /**
      * Initializes the layer
      * @param config The configuration for the layer
@@ -78,53 +78,63 @@ export class SpriteLayer extends BlockGridLayer<PassiveSpriteContainer> {
     }
 }
 
-/**
- * Represtnes the configuration for an actor which is represented by sprites
- */
-export interface ActorConfig extends InteractiveSpriteContainerConfig {
-    location: Array<number>
-    sprites: Array<string>
+export interface InstanceConfig<R extends RenderableAtPoint> {
+    seed: R;
+    location?: Array<number>;
 }
 
-/**
- * Represents something at can move due to user input on the canvas
- */
-export abstract class Actor<IA extends InputAccumalator> extends InteractiveSpriteContainer<IA> {
+export abstract class Instance<R extends RenderableAtPoint> implements Placeable, Renderable, Updatable {
+    constructor(config: InstanceConfig<R>) {
+        this._seed = config.seed;
 
-    /**
-     * Initializes the actor
-     * @param location The center point of the actor's initial location
-     * @param spriteIndex The index of the actor's initial sprite
-     * @param sprites An array of the actor's sprites
-     */
-    constructor(config: ActorConfig) {
-        super();
-
-        this.move(config.location[0], config.location[1]);
-        this.spriteIndex = 0;
-        this.spriteKeys = config.sprites;
+        if(config.location) {
+            this._location = new Point(config.location[0], config.location[1]);
+        } else {
+            this._location = new Point(0, 0);
+        }
     }
 
-    /**
-     * Renders the actor on the canvas
-     * @param spriteMap A map from keys to sprites
-     * @param context The rendering context of the canvas on which the actor should be rendered
-     */
+    public get seed(): R {
+        return this._seed;
+    }
+
+    public update(dt: number): void {
+
+    }
+
     public render(context: CanvasRenderingContext2D): void {
-        this.spriteKey = this.spriteKeys[this.spriteIndex];
-
-        super.render(context);
+        this.seed.renderAt(context, this.location);
     }
 
-    private spriteIndex: number;
-    private spriteKeys: Array<string>;
+    public get location(): Point {
+        return this._location;
+    }
+    public move(dx: number, dy: number): void {
+        this._location = this._location.plus(dx, dy);
+    }
+    
+    private _seed: R;
+    private _location: Point;
+}
+
+export class PassiveInstance<R extends RenderableAtPoint> extends Instance<R> {
+
+}
+
+export class InteractiveInstance<IA extends InputAccumalator, R extends RenderableAtPoint> extends Instance<R> {
+    public update(dt: number, inputAccumalator?: IA) {
+        super.update(dt);
+    }
 }
 
 /**
  * Represents the configuration of a world with sprite layers an possibily Actors
  */
 export interface LayeredSpriteWorldConfig<SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>, SMLCD extends SpriteMultilayerLayoutConfigDefaults, SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SMLC>, SpriteConfig {
-    containers?: SpriteContainerConfig
+    containers?: SpriteContainerConfig,
+    instances: {
+        [key: string]: Array<InstanceConfig<RenderableAtPoint>>;
+    }
 }
 
 /**
@@ -147,10 +157,21 @@ export abstract class GenericPureSpriteWorld<
         if(config.containers) {
             this.containerCabinet.fill(
                 config.containers,
-                this.spriteMap,
-                this.constructPassiveSpriteContainer,
-                this.constructInteractiveSpriteContainer
+                this.spriteMap
             );
+        }
+
+        for(let key in config.instances) {
+            config.instances[key].forEach(config => {
+                let container = this.containerCabinet.getContainer(key);
+                if(container) {
+                    config.seed = container;
+                    this.adhocInteraciveInstances.push(this.constructInteractiveInstance(
+                        key,
+                        config
+                    ));
+                }
+            });
         }
     }
 
@@ -170,21 +191,20 @@ export abstract class GenericPureSpriteWorld<
         }
     }
 
-    protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;
+    protected constructInteractiveInstance(key: string, actorConfig: InstanceConfig<RenderableAtPoint>): InteractiveInstance<IA, RenderableAtPoint> | never {
+        throw new Error("No interactive instance could be created for the key: " + key);
+    }
 
-    protected constructPassiveSpriteContainer(containerKey: string, config: PassiveSpriteContainerConfig): PassiveSpriteContainer | never {
-        throw new Error("No matching static sprite container for " + containerKey);
-    }
-    protected constructInteractiveSpriteContainer(key: string, config: InteractiveSpriteContainerConfig): InteractiveSpriteContainer<IA> | never {
-        throw new Error("No matching sprite for " + key);
-    }
+    protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;
 
     protected onUpdate(dt: number): void {
         super.onUpdate(dt);
 
         this.spriteMap.updateAllSprites(dt);
 
-        this.containerCabinet.update(dt, this.inputAccumalator);
+        this.containerCabinet.update(dt);
+
+        this.adhocInteraciveInstances.forEach(i => i.update(dt, this.inputAccumalator));
     }
 
     protected abstract get inputAccumalator(): IA;
@@ -197,9 +217,9 @@ export abstract class GenericPureSpriteWorld<
 
         this.adhocSprites.forEach((as: { key: string, center: Point}) => {
             this.spriteMap.render(this.drawingContext, as.key, as.center)
-            
-            this.containerCabinet.render(this.drawingContext, as.key);
         });
+
+        this.adhocInteraciveInstances.forEach(i => i.render(this.drawingContext));
     }
 
     /**
@@ -219,6 +239,7 @@ export abstract class GenericPureSpriteWorld<
     }
 
     private adhocSprites: Array<{ key: string, center: Point}> = [];
+    private adhocInteraciveInstances: Array<InteractiveInstance<IA, RenderableAtPoint>> = [];
 
     private spriteMap: SpriteMap = new SpriteMap();
     private containerCabinet: ContainerCabinet<IA> = new ContainerCabinet<IA>();

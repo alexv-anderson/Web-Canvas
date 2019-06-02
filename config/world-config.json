@@ -115,8 +115,8 @@
     "containers": {
         "default": [
             {
-                "key": "g",
-                "spriteKey": "g"
+                "key": "Soldier",
+                "sprites": [ "rsl" ]
             }
         ],
         "custom": {
@@ -127,5 +127,12 @@
                 }
             }
         }
-}
+    },
+    "instances": {
+        "Soldier": [
+            {
+                "location": [ 70, 30 ]
+            }
+        ]
+    }
 }
