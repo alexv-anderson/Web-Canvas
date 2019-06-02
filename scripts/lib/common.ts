@@ -11,6 +11,10 @@ export interface RenderableAtPoint {
     renderAt(context: CanvasRenderingContext2D, point: Point): void;
 }
 
+export interface KeyedValueRenderableAtPoint {
+    renderAt(context: CanvasRenderingContext2D, key: string, point: Point): void;
+}
+
 export interface Placeable {
     location: Point;
     move(dx: number, dy: number): void;

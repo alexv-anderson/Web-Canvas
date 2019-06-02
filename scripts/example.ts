@@ -1,7 +1,7 @@
 import { InteractiveInstance, SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig, InstanceConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { Point, RenderableAtPoint } from "./lib/common.js";
-import { InteractiveSpriteContainerConfig, SpriteContainer } from "./lib/container.js";
+import { SpriteContainer } from "./lib/container.js";
 
 /*
  * Only things which need to be implemented to create a new canvas world.

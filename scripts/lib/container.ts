@@ -1,6 +1,5 @@
 
-import { Point, RenderableAtPoint, Updatable } from "./common.js";
-import { InputAccumalator } from "./input.js";
+import { Point, RenderableAtPoint, Updatable, KeyedValueRenderableAtPoint } from "./common.js";
 import { SpriteMap } from "./sprite.js";
 
 export class SpriteContainer implements Updatable, RenderableAtPoint {
@@ -58,23 +57,23 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
 }
 
 
-export class ContainerCabinet<IA extends InputAccumalator> {
+export class ContainerCabinet implements KeyedValueRenderableAtPoint {
     public fill(
         config: SpriteContainerConfig, spriteMap: SpriteMap): void {
 
-        if(config.default) {
-            config.default.forEach(config => this.passiveContainerMap.set(
-                config.key,
-                new SpriteContainer(config.sprites, spriteMap)
+        if(config.containers) {
+            config.containers.forEach(containerConfig => this.containerMap.set(
+                containerConfig.key,
+                new SpriteContainer(containerConfig.sprites, spriteMap)
             ));
         }
     }
 
     public update(dt: number): void {
-        this.passiveContainerMap.forEach(passiveContainer => passiveContainer.update(dt));
+        this.containerMap.forEach(container => container.update(dt));
     }
 
-    public renderContainerAt(context: CanvasRenderingContext2D, containerKey: string, point: Point): void {
+    public renderAt(context: CanvasRenderingContext2D, containerKey: string, point: Point): void {
         let container = this.getContainer(containerKey);
         if(container) {
             container.renderAt(context, point);
@@ -82,7 +81,7 @@ export class ContainerCabinet<IA extends InputAccumalator> {
     }
 
     public getContainer(containerKey: string): SpriteContainer | undefined {
-        let container = this.passiveContainerMap.get(containerKey);
+        let container = this.containerMap.get(containerKey);
         if(container) {
             return container;
         }
@@ -90,28 +89,12 @@ export class ContainerCabinet<IA extends InputAccumalator> {
         throw new Error("No container found for " + containerKey);
     }
 
-    private passiveContainerMap: Map<string, SpriteContainer> = new Map<string, SpriteContainer>();
+    private containerMap: Map<string, SpriteContainer> = new Map<string, SpriteContainer>();
 }
 
 export interface SpriteContainerConfig {
-    default?: [{
+    containers?: [{
         key: string;
         sprites: Array<string>;
     }];
-    custom?: {
-        passive?: {
-            [key: string]: PassiveSpriteContainerConfig;
-        };
-        interactive?: {
-            [key: string]: InteractiveSpriteContainerConfig;
-        };
-    }
-}
-
-export interface PassiveSpriteContainerConfig {
-    spriteKey: string;
-}
-
-export interface InteractiveSpriteContainerConfig {
-
 }

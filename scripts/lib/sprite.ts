@@ -1,5 +1,5 @@
 
-import { Point, RenderableAtPoint } from "./common.js"
+import { Point, RenderableAtPoint, KeyedValueRenderableAtPoint } from "./common.js"
 import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
@@ -277,7 +277,7 @@ export class MultiFrameSprite extends Sprite {
 /**
  * Maps keys to a sprite
  */
-export class SpriteMap {
+export class SpriteMap implements KeyedValueRenderableAtPoint {
     constructor() {
         this.map = new Map<string, MultiFrameSprite>();
     }
@@ -355,7 +355,7 @@ export class SpriteMap {
      * @param key The key of the sprite to be drawn at the given coordinates
      * @param center The center point of the sprite's frame on the canvas
      */
-    public render(context: CanvasRenderingContext2D, key: string, center: Point): void {
+    public renderAt(context: CanvasRenderingContext2D, key: string, center: Point): void {
         let sprite = this.getSprite(key);
 
         if(sprite) {

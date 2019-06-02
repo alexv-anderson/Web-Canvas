@@ -84,12 +84,15 @@
             {
                 "sprites": {
                     "wr": [
-                        [0, 0], [0, 1],
+                        [0, 1],
                         [1, 0], [1, 1]
                     ],
                     "wd": [
                         [0, 3], [0, 4]
                     ]
+                },
+                "containers": {
+                    "Soldier": [ [ 0, 0 ] ]
                 }
             },
             {
@@ -112,27 +115,19 @@
             }
         ]
     },
-    "containers": {
-        "default": [
-            {
-                "key": "Soldier",
-                "sprites": [ "rsl" ]
-            }
-        ],
-        "custom": {
-            "interactive": {
-                "Soldier": {
-                    "location": [ 70, 30 ],
-                    "sprites": [ "rsl" ]
-                }
-            }
+    "containers": [
+        {
+            "key": "Soldier",
+            "sprites": [ "rsl" ]
         }
-    },
+    ],
     "instances": {
-        "Soldier": [
-            {
-                "location": [ 70, 30 ]
-            }
-        ]
+        "interactive": {
+            "Soldier": [
+                {
+                    "location": [ 70, 30 ]
+                }
+            ]
+        }
     }
 }

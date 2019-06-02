@@ -130,10 +130,14 @@ export class InteractiveInstance<IA extends InputAccumalator, R extends Renderab
 /**
  * Represents the configuration of a world with sprite layers an possibily Actors
  */
-export interface LayeredSpriteWorldConfig<SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>, SMLCD extends SpriteMultilayerLayoutConfigDefaults, SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SMLC>, SpriteConfig {
-    containers?: SpriteContainerConfig,
-    instances: {
-        [key: string]: Array<InstanceConfig<RenderableAtPoint>>;
+export interface LayeredSpriteWorldConfig<SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>, SMLCD extends SpriteMultilayerLayoutConfigDefaults, SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SMLC>, SpriteConfig, SpriteContainerConfig {
+    instances?: {
+        passive?: {
+            [key: string]: Array<InstanceConfig<RenderableAtPoint>>;
+        };
+        interactive?: {
+            [key: string]: Array<InstanceConfig<RenderableAtPoint>>;
+        };
     }
 }
 
@@ -156,22 +160,41 @@ export abstract class GenericPureSpriteWorld<
 
         if(config.containers) {
             this.containerCabinet.fill(
-                config.containers,
+                config,
                 this.spriteMap
             );
         }
 
-        for(let key in config.instances) {
-            config.instances[key].forEach(config => {
-                let container = this.containerCabinet.getContainer(key);
-                if(container) {
-                    config.seed = container;
-                    this.adhocInteraciveInstances.push(this.constructInteractiveInstance(
-                        key,
-                        config
-                    ));
+        if(config.instances) {
+            if(config.instances.passive) {
+                for(let key in config.instances.passive) {
+                    config.instances.passive[key].forEach(config => {
+                        let container = this.containerCabinet.getContainer(key);
+                        if(container) {
+                            config.seed = container;
+                            this.adhocInteraciveInstances.push(this.constructInteractiveInstance(
+                                key,
+                                config
+                            ));
+                        }
+                    });
                 }
-            });
+            }
+
+            if(config.instances.interactive) {
+                for(let key in config.instances.interactive) {
+                    config.instances.interactive[key].forEach(config => {
+                        let container = this.containerCabinet.getContainer(key);
+                        if(container) {
+                            config.seed = container;
+                            this.adhocInteraciveInstances.push(this.constructInteractiveInstance(
+                                key,
+                                config
+                            ));
+                        }
+                    });
+                }
+            }
         }
     }
 
@@ -191,7 +214,10 @@ export abstract class GenericPureSpriteWorld<
         }
     }
 
-    protected constructInteractiveInstance(key: string, actorConfig: InstanceConfig<RenderableAtPoint>): InteractiveInstance<IA, RenderableAtPoint> | never {
+    protected constructPassiveInstance(key: string, config: InstanceConfig<RenderableAtPoint>): PassiveInstance<RenderableAtPoint> | never {
+        throw new Error("No interactive instance could be created for the key: " + key);
+    }
+    protected constructInteractiveInstance(key: string, config: InstanceConfig<RenderableAtPoint>): InteractiveInstance<IA, RenderableAtPoint> | never {
         throw new Error("No interactive instance could be created for the key: " + key);
     }
 
@@ -216,7 +242,7 @@ export abstract class GenericPureSpriteWorld<
         super.render();
 
         this.adhocSprites.forEach((as: { key: string, center: Point}) => {
-            this.spriteMap.render(this.drawingContext, as.key, as.center)
+            this.spriteMap.renderAt(this.drawingContext, as.key, as.center)
         });
 
         this.adhocInteraciveInstances.forEach(i => i.render(this.drawingContext));
@@ -242,7 +268,7 @@ export abstract class GenericPureSpriteWorld<
     private adhocInteraciveInstances: Array<InteractiveInstance<IA, RenderableAtPoint>> = [];
 
     private spriteMap: SpriteMap = new SpriteMap();
-    private containerCabinet: ContainerCabinet<IA> = new ContainerCabinet<IA>();
+    private containerCabinet: ContainerCabinet = new ContainerCabinet();
 }
 
 export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
