@@ -8,25 +8,23 @@ import { SpriteContainer } from "./lib/container.js";
  */
 
 export class Soldier extends InteractiveInstance<SimpleInputAccumalator, SpriteContainer> {
-    public update(dt: number, inputAccumalator?: SimpleInputAccumalator): void {
+    public update(dt: number): void {
         super.update(dt);
 
         let dx: number = 0;
         let dy: number = 0;
 
-        if(inputAccumalator) {
-            if(inputAccumalator.arrowUpDown) {
-                dy -= 5;
-            }
-            if(inputAccumalator.arrowDownDown) {
-                dy += 5;
-            }
-            if(inputAccumalator.arrowLeftDown) {
-                dx -= 5;
-            }
-            if(inputAccumalator.arrowRightDown) {
-                dx += 5;
-            }
+        if(this.inputAccumalator.arrowUpDown) {
+            dy -= 5;
+        }
+        if(this.inputAccumalator.arrowDownDown) {
+            dy += 5;
+        }
+        if(this.inputAccumalator.arrowLeftDown) {
+            dx -= 5;
+        }
+        if(this.inputAccumalator.arrowRightDown) {
+            dx += 5;
         }
 
         this.move(dx, dy);
@@ -40,7 +38,7 @@ class MyWorld extends SimpleSpriteWorld {
 
     protected constructInteractiveInstance(key: string, actorConfig: InstanceConfig<RenderableAtPoint>): InteractiveInstance<SimpleInputAccumalator, RenderableAtPoint> | never {
         if(key === "Soldier") {
-            return new Soldier(actorConfig as InstanceConfig<SpriteContainer>);
+            return new Soldier(actorConfig as InstanceConfig<SpriteContainer>, this.inputAccumalator);
         }
         
         return super.constructInteractiveInstance(key, actorConfig);

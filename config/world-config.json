@@ -123,11 +123,7 @@
     ],
     "instances": {
         "interactive": {
-            "Soldier": [
-                {
-                    "location": [ 70, 30 ]
-                }
-            ]
+            "Soldier": { }
         }
     }
 }
