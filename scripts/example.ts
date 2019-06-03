@@ -31,6 +31,18 @@ export class Soldier extends InteractiveInstance<SimpleInputAccumalator, SpriteC
     }
 }
 
+class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, SpriteContainer> {
+    public update(dt: number): void {
+        super.update(dt);
+
+        if(this.inputAccumalator.arrowRightDown || this.inputAccumalator.arrowLeftDown) {
+            this.seed.spriteIndex = 1;
+        } else if (this.inputAccumalator.arrowDownDown || this.inputAccumalator.arrowUpDown) {
+            this.seed.spriteIndex = 0;
+        }
+    }
+}
+
 class MyWorld extends SimpleSpriteWorld {
     protected onConfigurationLoaded(config: SimpleMultilayeredSpriteWorldConfig): void {
         super.onConfigurationLoaded(config);
@@ -39,6 +51,8 @@ class MyWorld extends SimpleSpriteWorld {
     protected constructInteractiveInstance(key: string, actorConfig: InstanceConfig<RenderableAtPoint>): InteractiveInstance<SimpleInputAccumalator, RenderableAtPoint> | never {
         if(key === "Soldier") {
             return new Soldier(actorConfig as InstanceConfig<SpriteContainer>, this.inputAccumalator);
+        } else if(key === "ToggleTile") {
+            return new ToggleTile(actorConfig as InstanceConfig<SpriteContainer>, this.inputAccumalator);
         }
         
         return super.constructInteractiveInstance(key, actorConfig);

@@ -43,10 +43,10 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
         this._centerRender = center;
     }
 
-    protected get spriteKey(): string {
+    public get spriteKey(): string {
         return this._spriteKeys[this._spriteIndex];
     }
-    protected set spriteIndex(index: number) {
+    public set spriteIndex(index: number) {
         this._spriteIndex = index;
     }
 
