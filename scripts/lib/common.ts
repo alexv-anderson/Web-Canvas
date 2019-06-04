@@ -1,22 +1,52 @@
 
+/**
+ * Indicates an objects which expects incremental time-based updates
+ */
 export interface Updatable {
+    /**
+     * Called periodically to update the state of the object
+     * @param dt Number of milliseconds which have passed since the last time this method was called
+     */
     update(dt: number): void;
 }
 
+/**
+ * Indicates an object which can be rendered on a 2D canvas
+ */
 export interface Renderable {
+    /**
+     * Called when the object should be rendered
+     * @param context The 2D rendering context of the canvas
+     */
     render(context: CanvasRenderingContext2D): void;
 }
 
+/**
+ * Indicates an object which can be rendered at a point on a 2D canvas
+ */
 export interface RenderableAtPoint {
+    /**
+     * Called when the object should be rendered
+     * @param context The 2D rendering context of the canvas
+     * @param point The point where the object should be rendered
+     */
     renderAt(context: CanvasRenderingContext2D, point: Point): void;
 }
 
-export interface KeyedValueRenderableAtPoint {
-    renderAt(context: CanvasRenderingContext2D, key: string, point: Point): void;
-}
-
+/**
+ * Indicates an object which can be placed somewhere in a 2D plane
+ */
 export interface Placeable {
+    /**
+     * The objects current location
+     */
     location: Point;
+
+    /**
+     * Changes the objects postion
+     * @param dx The change in the object's x position
+     * @param dy The change in the object's y position
+     */
     move(dx: number, dy: number): void;
 }
 
