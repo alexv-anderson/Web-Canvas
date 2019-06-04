@@ -92,7 +92,12 @@
                     ]
                 },
                 "instances": {
-                    "ToggleTile": [ [ 0, 0 ] ]
+                    "interactive": {
+                        "ToggleTile": [ [ 0, 0 ] ]
+                    },
+                    "passive": {
+                        "BlinkTile": [ [ 1, 0 ] ]
+                    }
                 }
             },
             {
@@ -103,7 +108,9 @@
                     ]
                 },
                 "instances": {
-                    "Soldier": [ [ 0, 0 ] ]
+                    "interactive": {
+                        "Soldier": [ [ 0, 0 ] ]
+                    }
                 }
             },
             {
@@ -126,12 +133,19 @@
         {
             "key": "toggle-tile",
             "sprites": [ "wr", "g" ]
+        },
+        {
+            "key": "toggle-tile-1",
+            "sprites": [ "wr", "g" ]
         }
     ],
     "instances": {
         "interactive": {
             "Soldier": { "key": "roman-soldier" },
             "ToggleTile": { "key": "toggle-tile" }
+        },
+        "passive": {
+            "BlinkTile": { "key": "toggle-tile-1" }
         }
     }
 }

@@ -111,6 +111,19 @@ export class InstanceManager<IA extends InputAccumalator, IP extends InstancePro
         }
     }
 
+    public assemblePassiveInstanceConfig(key: string, getRenderableAtPoint: (properties: IP) => R | undefined): InstanceConfig<IP, R> | undefined {
+        let properties = this.passiveInstancePropertiesMap.get(key);
+        if(properties) {
+            let seed = getRenderableAtPoint(properties);
+            if(seed) {
+                return {
+                    seed: seed,
+                    properties: properties
+                }
+            }
+        }
+    }
+
     private passiveInstancePropertiesMap: Map<string, IP> = new Map<string, IP>();
     private interactiveInstancePropertiesMap: Map<string, IP> = new Map<string, IP>();
 }

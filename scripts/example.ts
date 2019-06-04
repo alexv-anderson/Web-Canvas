@@ -1,6 +1,6 @@
 import { SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
-import { InstanceConfig, InteractiveInstance, InteractiveInstanceConfig } from "./lib/instance.js";
+import { InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance } from "./lib/instance.js";
 import { Point, RenderableAtPoint } from "./lib/common.js";
 import { SpriteContainer } from "./lib/container.js";
 
@@ -44,6 +44,26 @@ class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, any, Sprite
     }
 }
 
+class BlinkTile extends PassiveInstance<any, SpriteContainer> {
+    public update(dt: number): void {
+        this.timePassed += dt;
+
+        if(this.timePassed > 1000) {
+            if(this.showingG) {
+                this.seed.keyIndex = 1;
+            } else {
+                this.seed.keyIndex = 0;
+            }
+
+            this.showingG = !this.showingG;
+            this.timePassed = 0;
+        }
+    }
+
+    private showingG: boolean;
+    private timePassed: number = 0;
+}
+
 class MyWorld extends SimpleSpriteWorld {
     protected onConfigurationLoaded(config: SimpleMultilayeredSpriteWorldConfig): void {
         super.onConfigurationLoaded(config);
@@ -57,6 +77,14 @@ class MyWorld extends SimpleSpriteWorld {
         }
         
         return super.constructInteractiveInstance(key, config);
+    }
+
+    protected constructPassiveInstance(key: string, config: InstanceConfig<any, SpriteContainer>): PassiveInstance<any, RenderableAtPoint> | never {
+        if(key = "BlinkTile") {
+            return new BlinkTile(config);
+        }
+
+        return super.constructPassiveInstance(key, config);
     }
 
     public onUpdate(dt: number): void {
