@@ -30,7 +30,11 @@ interface SpriteLayerLocations {
     [key: string]: Array<Array<number>>
 }
 
-class SpriteContainerBlock<I extends Instance<IP, RenderableAtPoint>, IP extends InstanceProperties> extends Block<I> {
+export interface KeyedInstanceProperties extends InstanceProperties {
+    key: string
+}
+
+class SpriteContainerBlock<I extends Instance<KIP, RenderableAtPoint>, KIP extends KeyedInstanceProperties> extends Block<I> {
     constructor(row: number, column: number, instance: I) {
         super(row, column);
 
@@ -47,12 +51,12 @@ class SpriteContainerBlock<I extends Instance<IP, RenderableAtPoint>, IP extends
 /**
  * Represents a layer of sprites which for the background/floor
  */
-export class SpriteLayer<IP extends InstanceProperties> extends BlockGridLayer<Instance<IP, RenderableAtPoint>> {
+export class SpriteLayer<KIP extends KeyedInstanceProperties> extends BlockGridLayer<Instance<KIP, RenderableAtPoint>> {
     /**
      * Initializes the layer
      * @param config The configuration for the layer
      */
-    constructor(config: SpriteLayerConfig, spriteManager: SpriteManager, construct: (key: string) => Instance<IP, RenderableAtPoint>) {
+    constructor(config: SpriteLayerConfig, spriteManager: SpriteManager, construct: (key: string) => Instance<KIP, RenderableAtPoint>) {
         let stepHeight = 32;
         let stepWidth = 32;
 
@@ -72,7 +76,7 @@ export class SpriteLayer<IP extends InstanceProperties> extends BlockGridLayer<I
                     new SpriteContainerBlock(
                         pair[0],
                         pair[1],
-                        new PassiveInstance<IP, SpriteContainer>({ seed: new SpriteContainer([key], spriteManager) })
+                        new PassiveInstance<KIP, SpriteContainer>({ seed: new SpriteContainer([key], spriteManager) })
                     )
                 );
             }
@@ -119,10 +123,10 @@ export interface LayeredSpriteWorldConfig<
  * Generic reperesentation of a world which is composed completely of sprites.
  */
 export abstract class GenericPureSpriteWorld<
-    C extends LayeredSpriteWorldConfig<IP, SMLC, SMLCD, SLC>,
+    C extends LayeredSpriteWorldConfig<KIP, SMLC, SMLCD, SLC>,
     IA extends InputAccumalator,
-    IP extends InstanceProperties,
-    SL extends SpriteLayer<IP>,
+    KIP extends KeyedInstanceProperties,
+    SL extends SpriteLayer<KIP>,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
     SLC extends SpriteLayerConfig
@@ -142,21 +146,15 @@ export abstract class GenericPureSpriteWorld<
         if(config.instances) {
             if(config.instances.passive) {
                 for(let key in config.instances.passive) {
-                    let container = this.containerManager.getContainer(key);
-                    if(container) {
-                        let instanceProperties = config.instances.passive[key];
-                        this.passiveInstancePropertiesMap.set(key, instanceProperties);
-                    }
+                    let instanceProperties = config.instances.passive[key];
+                    this.passiveInstancePropertiesMap.set(key, instanceProperties);
                 }
             }
 
             if(config.instances.interactive) {
                 for(let key in config.instances.interactive) {
-                    let container = this.containerManager.getContainer(key);
-                    if(container) {
-                        let instanceConfig = config.instances.interactive[key];
-                        this.interactiveInstancePropertiesMap.set(key, instanceConfig);
-                    }
+                    let instanceConfig = config.instances.interactive[key];
+                    this.interactiveInstancePropertiesMap.set(key, instanceConfig);
                 }
             }
         }
@@ -169,10 +167,10 @@ export abstract class GenericPureSpriteWorld<
         return this.constructSpriteLayer(config, this.spriteManager, defaults);
     }
 
-    protected constructPassiveInstance(key: string, config: InstanceConfig<IP, RenderableAtPoint>): PassiveInstance<IP, RenderableAtPoint> | never {
+    protected constructPassiveInstance(key: string, config: InstanceConfig<KIP, RenderableAtPoint>): PassiveInstance<KIP, RenderableAtPoint> | never {
         throw new Error("No interactive instance could be created for the key: " + key);
     }
-    protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<IA, IP, RenderableAtPoint>): InteractiveInstance<IA, IP, RenderableAtPoint> | never {
+    protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<IA, KIP, RenderableAtPoint>): InteractiveInstance<IA, KIP, RenderableAtPoint> | never {
         throw new Error("No interactive instance could be created for the key: " + key);
     }
 
@@ -211,21 +209,24 @@ export abstract class GenericPureSpriteWorld<
         });
     }
 
-    protected getInteractiveInstanceConfiguration(key: string): InteractiveInstanceConfig<IA, IP, RenderableAtPoint> | undefined {
-        let container = this.containerManager.getContainer(key);
-        if(container) {
-            return {
-                inputAccumalator: this.inputAccumalator,
-                seed: container,
-                properties: this.interactiveInstancePropertiesMap.get(key)
-            };
+    protected getInteractiveInstanceConfiguration(key: string): InteractiveInstanceConfig<IA, KIP, RenderableAtPoint> | undefined {
+        let properties = this.interactiveInstancePropertiesMap.get(key);
+        if(properties) {
+            let container = this.containerManager.getContainer(properties.key);
+            if(container) {
+                return {
+                    inputAccumalator: this.inputAccumalator,
+                    seed: container,
+                    properties: properties
+                };
+            }
         }
     }
 
     private adhocSprites: Array<{ key: string, center: Point}> = [];
 
-    private passiveInstancePropertiesMap: Map<string, IP> = new Map<string, IP>();
-    private interactiveInstancePropertiesMap: Map<string, IP> = new Map<string, IP>();
+    private passiveInstancePropertiesMap: Map<string, KIP> = new Map<string, KIP>();
+    private interactiveInstancePropertiesMap: Map<string, KIP> = new Map<string, KIP>();
 
     private spriteManager: SpriteManager = new SpriteManager();
     private containerManager: ContainerManager = new ContainerManager();
