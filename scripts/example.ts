@@ -87,5 +87,5 @@ window.onload = function() {
             (document.getElementById("theCanvas") as HTMLCanvasElement),
             "./config/world-config.json"
         );
-        world.start();
+        world.play();
 }

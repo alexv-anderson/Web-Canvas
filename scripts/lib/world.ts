@@ -25,16 +25,14 @@ export abstract class World<C extends WorldConfig> {
     /**
      * Start the world in motion
      */
-    public start() {
+    public play() {
         this.update();
         this.render();
-        window.requestAnimationFrame(() => this.start());
+        window.requestAnimationFrame(() => this.play());
     }
 
     /**
      * Updates everything in the world
-     * @param dt Number of milliseconds which have passed since the last time this method was called
-     * @param inputAccumalator Input collected from the user
      */
     public update() {
         let dt = 0;
