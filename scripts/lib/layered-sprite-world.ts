@@ -270,10 +270,6 @@ export abstract class GenericPureSpriteWorld<
         });
     }
 
-    protected getSprite(key: string): MultiFrameSprite | undefined {
-        return this.spriteMap.getSprite(key);
-    }
-
     protected getInteractiveInstanceConfiguration(key: string): InstanceConfig<RenderableAtPoint> | undefined {
         return this.interactiveInstanceConfigMap.get(key);
     }

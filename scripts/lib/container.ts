@@ -21,19 +21,7 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
     }
 
     public renderAt(context: CanvasRenderingContext2D, point: Point): void {
-        let sprite = this._spriteMap.getSprite(this.spriteKey);
-
-        if(sprite) {
-
-            if(this.isSpriteRenderCentered) {
-                point = point.plus(
-                    - (sprite.frameWidth / 2),
-                    - (sprite.frameHeight / 2)
-                );
-            }
-
-            sprite.renderAt(context, point);
-        }
+        this._spriteMap.renderAt(context, this.spriteKey, point, this.isSpriteRenderCentered);
     }
 
     public get isSpriteRenderCentered(): boolean {

@@ -1,50 +1,56 @@
 
-import { Point, RenderableAtPoint, KeyedValueRenderableAtPoint } from "./common.js"
+import { Point, RenderableAtPoint, Updatable } from "./common.js"
 import { loadPNG } from "./web-loaders.js";
 
 export interface SpriteConfig {
     spriteSources: Array<SpriteSheetSource>
 }
+
+//#region SpriteSheet Locations and Defaults
 interface SpriteSheetSource {
-    baseURL: string,
-    sheets: Array<MultispriteSheetDescription>,
-    singles: Array<MonospriteSheetDescription>
+    baseURL: string;
+    sheets: Array<MultispriteSheetDescription>;
+    singles: Array<MonospriteSheetDescription>;
 }
 interface MultispriteSheetDescription {
-    fileName: string,
+    fileName: string;
     defaultSpriteProperties?: {
-        frameHeight?: number,
-        frameWidth?: number
-    }
-    sprites: Array<SpriteDescription>
+        frameHeight?: number;
+        frameWidth?: number;
+    };
+    sprites: Array<SpriteDescription>;
 }
 interface MonospriteSheetDescription extends SpriteDescription {
-    fileName: string,
+    fileName: string;
 }
-interface SpriteDescription extends MultiFrameSpriteProperties {
-    key: string,
-}
-interface SpriteProperties {
-    frameHeight?: number,
-    frameWidth?: number,
+//#endregion
 
-    sourceX?: number,
-    sourceY?: number
+//#region Sprite Configuration and Properties
+interface SpriteProperties {
+    frameHeight?: number;
+    frameWidth?: number;
+
+    sourceX?: number;
+    sourceY?: number;
 }
 interface MultiFrameSpriteProperties extends SpriteProperties {
     frames?: {
-        numberOfFrames: number,
-        framesPerSecond: number,
+        numberOfFrames: number;
+        framesPerSecond: number;
 
-        areHorizontal: boolean,
+        areHorizontal: boolean;
 
-        loop: boolean,
-        autoStart: boolean
+        loop: boolean;
+        autoStart: boolean;
     }
 }
+interface SpriteDescription extends MultiFrameSpriteProperties {
+    key: string;
+}
+//#endregion
 
 /**
- * Represents a single sprite which may be composed of one or more frames.
+ * Represents a sprite which may be encompass some or all of an image.
  */
 export class Sprite implements RenderableAtPoint {
     /**
@@ -125,16 +131,28 @@ export class Sprite implements RenderableAtPoint {
         return this._frameHeight;
     }
 
+    /**
+     * The x-coordinate of the sprite's top-left pixel in the source image
+     */
     protected get imageBaseX(): number {
         return this._imageBaseX;
     }
+    /**
+     * The y-cooridinate of the sprites's top-left pixel in the source image
+     */
     protected get imageBaseY(): number {
         return this._imageBaseY;
     }
 
+    /**
+     * The x-coordinate of the top-left pixel of the sprite's frame in the source image
+     */
     protected get frameSourceImageX(): number {
         return this.imageBaseX;
     }
+    /**
+     * The y-coordinate of the top-left pixel of the sprite's frame in the source image
+     */
     protected get frameSourceImageY(): number {
         return this.imageBaseY;
     }
@@ -148,7 +166,10 @@ export class Sprite implements RenderableAtPoint {
     private _frameWidth: number;
 }
 
-export class MultiFrameSprite extends Sprite {
+/**
+ * Represents a sprite which may be encompass some or all of an image and is composed of multiple frames.
+ */
+export class MultiFrameSprite extends Sprite implements Updatable {
     /**
      * Initializes the sprite.
      * 
@@ -183,7 +204,7 @@ export class MultiFrameSprite extends Sprite {
                 this.loop = options.frames.loop;
 
                 if(options.frames.autoStart) {
-                    this.start();
+                    this.play();
                 } else {
                     this.pause();
                 }
@@ -207,6 +228,10 @@ export class MultiFrameSprite extends Sprite {
         this.lastFrameChangeTime = 0;
     }
 
+    /**
+     * The x-coordinate of the top-left pixel of the sprite's frame in the source image which
+     *   has been offset for the correct frame.
+     */
     protected get frameSourceImageX(): number {
         let srcX = this.imageBaseX;
 
@@ -216,6 +241,10 @@ export class MultiFrameSprite extends Sprite {
 
         return srcX;
     }
+    /**
+     * The y-coordinate of the top-left pixel of the sprite's frame in the source image which
+     *   has been offset for the correct frame.
+     */
     protected get frameSourceImageY(): number {
         let srcY = this.imageBaseY;
         
@@ -256,9 +285,15 @@ export class MultiFrameSprite extends Sprite {
         }
     }
 
-    public start(): void {
+    /**
+     * Plays through the sprite's frames beginning from the current frame
+     */
+    public play(): void {
         this._updateFrame = true;
     }
+    /**
+     * Pauses the progression through the sprite's frames
+     */
     public pause(): void {
         this._updateFrame = false;
     }
@@ -277,11 +312,18 @@ export class MultiFrameSprite extends Sprite {
 /**
  * Maps keys to a sprite
  */
-export class SpriteMap implements KeyedValueRenderableAtPoint {
+export class SpriteMap {
     constructor() {
         this.map = new Map<string, MultiFrameSprite>();
     }
 
+    /**
+     * Asynchronously loads the sprites from the given source and loads them into the map.
+     * 
+     * Note: If the key of a newly loaded sprite conflicts with an existing key, then the old
+     *   key and its sprite will be replaced by the newly loaded sprite
+     * @param spriteSheetSource The source from which sprite sheets shold be loaded
+     */
     public loadSpriteSource(spriteSheetSource: SpriteSheetSource): void {
     
         // For each sprite
@@ -328,7 +370,6 @@ export class SpriteMap implements KeyedValueRenderableAtPoint {
             });
         });
     }
-    
 
     /**
      * Adds a key and its sprite to the map.
@@ -336,7 +377,7 @@ export class SpriteMap implements KeyedValueRenderableAtPoint {
      * @param key The key to be used for the given sprite
      * @param sprite The sprte to be associated with the given key
      */
-    public addSprite(key: string, sprite: MultiFrameSprite): void {
+    private addSprite(key: string, sprite: MultiFrameSprite): void {
         this.map.set(key, sprite);
     }
 
@@ -353,22 +394,31 @@ export class SpriteMap implements KeyedValueRenderableAtPoint {
      * 
      * @param context The canvas' 2D rendering context
      * @param key The key of the sprite to be drawn at the given coordinates
-     * @param center The center point of the sprite's frame on the canvas
+     * @param point The center point of the sprite's frame on the canvas
      */
-    public renderAt(context: CanvasRenderingContext2D, key: string, center: Point): void {
-        let sprite = this.getSprite(key);
+    public renderAt(context: CanvasRenderingContext2D, key: string, point: Point): void;
+    /**
+     * Draws the current frame of the sprite associated with the given key on the canvas at the given coordinates.
+     * 
+     * @param context The canvas' 2D rendering context
+     * @param key The key of the sprite to be drawn at the given coordinates
+     * @param point The center point of the sprite's frame on the canvas
+     * @param centered True if the point given is the center of the sprite, false if the point is the top-left corner
+     */
+    public renderAt(context: CanvasRenderingContext2D, key: string, point: Point, centered: boolean): void;
+    public renderAt(context: CanvasRenderingContext2D, key: string, point: Point, centered?: boolean): void {
+        let sprite = this.map.get(key);
 
         if(sprite) {
-            sprite.renderAt(context, center);
-        }
-    }
+            if(centered !== undefined && centered) {
+                point = point.plus(
+                    - (sprite.frameWidth / 2),
+                    - (sprite.frameHeight / 2)
+                );
+            }
 
-    /**
-     * Supplies the sprite associated with the given key
-     * @param key The key for the desired sprite
-     */
-    public getSprite(key: string): MultiFrameSprite | undefined {
-        return this.map.get(key);
+            sprite.renderAt(context, point);
+        }
     }
 
     private map: Map<string, MultiFrameSprite>;
