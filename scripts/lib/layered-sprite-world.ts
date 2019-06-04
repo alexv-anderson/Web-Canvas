@@ -1,6 +1,6 @@
 
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
-import { Instance, InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, InstanceProperties } from "./instance.js";
+import { Instance, InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, InstanceProperties, InstanceConfigurations, InstanceManager } from "./instance.js";
 import { Point, RenderableAtPoint } from "./common.js";
 import { SpriteContainerConfig, SpriteContainer, ContainerManager } from "./container.js";
 import { SpriteConfig, SpriteManager } from "./sprite.js";
@@ -108,15 +108,8 @@ export interface LayeredSpriteWorldConfig<
     IP extends InstanceProperties,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
-    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig, SpriteContainerConfig {
-    instances?: {
-        passive?: {
-            [key: string]: IP;
-        };
-        interactive?: {
-            [key: string]: IP;
-        };
-    }
+    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig, SpriteContainerConfig, InstanceConfigurations<IP> {
+    
 }
 
 /**
@@ -143,21 +136,7 @@ export abstract class GenericPureSpriteWorld<
             );
         }
 
-        if(config.instances) {
-            if(config.instances.passive) {
-                for(let key in config.instances.passive) {
-                    let instanceProperties = config.instances.passive[key];
-                    this.passiveInstancePropertiesMap.set(key, instanceProperties);
-                }
-            }
-
-            if(config.instances.interactive) {
-                for(let key in config.instances.interactive) {
-                    let instanceConfig = config.instances.interactive[key];
-                    this.interactiveInstancePropertiesMap.set(key, instanceConfig);
-                }
-            }
-        }
+        this.instanceManager.fill(config);
 
         // Try to move this to top...
         super.onConfigurationLoaded(config);
@@ -210,26 +189,18 @@ export abstract class GenericPureSpriteWorld<
     }
 
     protected getInteractiveInstanceConfiguration(key: string): InteractiveInstanceConfig<IA, KIP, RenderableAtPoint> | undefined {
-        let properties = this.interactiveInstancePropertiesMap.get(key);
-        if(properties) {
-            let container = this.containerManager.getContainer(properties.key);
-            if(container) {
-                return {
-                    inputAccumalator: this.inputAccumalator,
-                    seed: container,
-                    properties: properties
-                };
-            }
-        }
+        return this.instanceManager.assembleInteractiveInstanceConfig(
+            key,
+            this.inputAccumalator,
+            properties => this.containerManager.getContainer(properties.key)
+        );
     }
 
     private adhocSprites: Array<{ key: string, center: Point}> = [];
 
-    private passiveInstancePropertiesMap: Map<string, KIP> = new Map<string, KIP>();
-    private interactiveInstancePropertiesMap: Map<string, KIP> = new Map<string, KIP>();
-
     private spriteManager: SpriteManager = new SpriteManager();
     private containerManager: ContainerManager = new ContainerManager();
+    private instanceManager: InstanceManager<IA, KIP, RenderableAtPoint> = new InstanceManager<IA, KIP, RenderableAtPoint>();
 }
 
 export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<any, SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
