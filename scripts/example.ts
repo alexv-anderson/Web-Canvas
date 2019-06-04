@@ -36,9 +36,9 @@ class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, SpriteConta
         super.update(dt);
 
         if(this.inputAccumalator.arrowRightDown || this.inputAccumalator.arrowLeftDown) {
-            this.seed.spriteIndex = 1;
+            this.seed.keyIndex = 1;
         } else if (this.inputAccumalator.arrowDownDown || this.inputAccumalator.arrowUpDown) {
-            this.seed.spriteIndex = 0;
+            this.seed.keyIndex = 0;
         }
     }
 }

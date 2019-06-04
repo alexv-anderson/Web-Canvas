@@ -310,15 +310,15 @@ export class MultiFrameSprite extends Sprite implements Updatable {
 }
 
 /**
- * Maps keys to a sprite
+ * Manages the sprites which are available
  */
-export class SpriteMap {
+export class SpriteManager {
     constructor() {
         this.map = new Map<string, MultiFrameSprite>();
     }
 
     /**
-     * Asynchronously loads the sprites from the given source and loads them into the map.
+     * Asynchronously loads the sprites from the given source and loads them into the manager.
      * 
      * Note: If the key of a newly loaded sprite conflicts with an existing key, then the old
      *   key and its sprite will be replaced by the newly loaded sprite
@@ -372,7 +372,7 @@ export class SpriteMap {
     }
 
     /**
-     * Adds a key and its sprite to the map.
+     * Adds a key and its sprite to the manager.
      * 
      * @param key The key to be used for the given sprite
      * @param sprite The sprte to be associated with the given key
@@ -382,7 +382,7 @@ export class SpriteMap {
     }
 
     /**
-     * Updates the frame for all of the sprites in the map.
+     * Updates the frame for all of the sprites in the manager.
      * @param dt Number of milliseconds which have passed since the last time this method was called
      */
     public updateAllSprites(dt: number): void {

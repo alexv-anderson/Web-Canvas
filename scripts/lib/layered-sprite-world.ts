@@ -1,7 +1,7 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point, Placeable, Renderable, Updatable, RenderableAtPoint } from "./common.js";
-import { SpriteContainerConfig, SpriteContainer, ContainerCabinet } from "./container.js";
-import { SpriteConfig, SpriteMap, MultiFrameSprite } from "./sprite.js";
+import { SpriteContainerConfig, SpriteContainer, ContainerManager } from "./container.js";
+import { SpriteConfig, SpriteManager } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
@@ -50,7 +50,7 @@ export class SpriteLayer extends BlockGridLayer<Instance<RenderableAtPoint>> {
      * Initializes the layer
      * @param config The configuration for the layer
      */
-    constructor(config: SpriteLayerConfig, spriteMap: SpriteMap, construct: (key: string) => Instance<RenderableAtPoint>) {
+    constructor(config: SpriteLayerConfig, spriteManager: SpriteManager, construct: (key: string) => Instance<RenderableAtPoint>) {
         let stepHeight = 32;
         let stepWidth = 32;
 
@@ -70,7 +70,7 @@ export class SpriteLayer extends BlockGridLayer<Instance<RenderableAtPoint>> {
                     new SpriteContainerBlock(
                         pair[0],
                         pair[1],
-                        new PassiveInstance<SpriteContainer>({ seed: new SpriteContainer([key], spriteMap) })
+                        new PassiveInstance<SpriteContainer>({ seed: new SpriteContainer([key], spriteManager) })
                     )
                 );
             }
@@ -175,19 +175,19 @@ export abstract class GenericPureSpriteWorld<
     
     protected onConfigurationLoaded(config: C): void {
 
-        config.spriteSources.forEach(source => this.spriteMap.loadSpriteSource(source));
+        config.spriteSources.forEach(source => this.spriteManager.loadSpriteSource(source));
 
         if(config.containers) {
-            this.containerCabinet.fill(
+            this.containerManager.fill(
                 config,
-                this.spriteMap
+                this.spriteManager
             );
         }
 
         if(config.instances) {
             if(config.instances.passive) {
                 for(let key in config.instances.passive) {
-                    let container = this.containerCabinet.getContainer(key);
+                    let container = this.containerManager.getContainer(key);
                     if(container) {
                         let instanceConfig = config.instances.passive[key];
                         instanceConfig.seed = container;
@@ -198,7 +198,7 @@ export abstract class GenericPureSpriteWorld<
 
             if(config.instances.interactive) {
                 for(let key in config.instances.interactive) {
-                    let container = this.containerCabinet.getContainer(key);
+                    let container = this.containerManager.getContainer(key);
                     if(container) {
                         let instanceConfig = config.instances.interactive[key];
                         instanceConfig.seed = container;
@@ -217,7 +217,7 @@ export abstract class GenericPureSpriteWorld<
 
         let constructedLayers = config.index.map(layerConfig => this.constructSpriteLayer(
             layerConfig,
-            this.spriteMap,
+            this.spriteManager,
             config.defaults
         ));
 
@@ -235,14 +235,14 @@ export abstract class GenericPureSpriteWorld<
         throw new Error("No interactive instance could be created for the key: " + key);
     }
 
-    protected abstract constructSpriteLayer(config: SLC, spriteMap: SpriteMap, defaults?: SMLCD): SL;
+    protected abstract constructSpriteLayer(config: SLC, spriteManager: SpriteManager, defaults?: SMLCD): SL;
 
     protected onUpdate(dt: number): void {
         super.onUpdate(dt);
 
-        this.spriteMap.updateAllSprites(dt);
+        this.spriteManager.updateAllSprites(dt);
 
-        this.containerCabinet.update(dt);
+        this.containerManager.update(dt);
     }
 
     protected abstract get inputAccumalator(): IA;
@@ -254,7 +254,7 @@ export abstract class GenericPureSpriteWorld<
         super.render();
 
         this.adhocSprites.forEach((as: { key: string, center: Point}) => {
-            this.spriteMap.renderAt(this.drawingContext, as.key, as.center)
+            this.spriteManager.renderAt(this.drawingContext, as.key, as.center)
         });
     }
 
@@ -279,8 +279,8 @@ export abstract class GenericPureSpriteWorld<
     private passiveInstanceConfigMap: Map<string, InstanceConfig<RenderableAtPoint>> = new Map<string, InstanceConfig<RenderableAtPoint>>();
     private interactiveInstanceConfigMap: Map<string, InstanceConfig<RenderableAtPoint>> = new Map<string, InstanceConfig<RenderableAtPoint>>();
 
-    private spriteMap: SpriteMap = new SpriteMap();
-    private containerCabinet: ContainerCabinet = new ContainerCabinet();
+    private spriteManager: SpriteManager = new SpriteManager();
+    private containerManager: ContainerManager = new ContainerManager();
 }
 
 export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
@@ -307,7 +307,7 @@ export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
         this.ia = new SimpleInputAccumalator(canvas);
     }
 
-    protected constructSpriteLayer(config: SpriteLayerConfig, spriteMap: SpriteMap, defaults?: SpriteMultilayerLayoutConfigDefaults): SpriteLayer {
+    protected constructSpriteLayer(config: SpriteLayerConfig, spriteManager: SpriteManager, defaults?: SpriteMultilayerLayoutConfigDefaults): SpriteLayer {
         if(defaults !== undefined) {
             if(config.step === undefined) {
                 config.step = {
@@ -320,7 +320,7 @@ export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
             }
         }
 
-        return new SpriteLayer(config, spriteMap, (key: string) => {
+        return new SpriteLayer(config, spriteManager, (key: string) => {
             let config = this.getInteractiveInstanceConfiguration(key);
             if(config) {
                 return this.constructInteractiveInstance(key, config) as Instance<RenderableAtPoint>;
