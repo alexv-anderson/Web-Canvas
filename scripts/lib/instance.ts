@@ -2,15 +2,29 @@
 import { Placeable, Point, Renderable, RenderableAtPoint, Updatable } from "./common.js";
 import { InputAccumalator } from "./input.js";
 
-export interface InstanceConfig<R extends RenderableAtPoint> {
+export interface InstanceConfig<IP extends InstanceProperties, R extends RenderableAtPoint> {
     seed: R;
+    properties?: IP;
+}
+export interface InstanceProperties {
+
 }
 
-export abstract class Instance<R extends RenderableAtPoint> implements Placeable, Renderable, Updatable {
-    constructor(config: InstanceConfig<R>) {
+export interface InteractiveInstanceConfig<IA extends InputAccumalator, IP extends InstanceProperties, R extends RenderableAtPoint> extends InstanceConfig<IP, R> {
+    inputAccumalator: IA;
+}
+
+export abstract class Instance<IP extends InstanceProperties, R extends RenderableAtPoint> implements Placeable, Renderable, Updatable {
+    constructor(config: InstanceConfig<IP, R>) {
         this._seed = config.seed;
 
         this._location = new Point(0, 0);
+
+        this.onProperiesLoaded(config.properties);
+    }
+
+    public onProperiesLoaded(properties?: IP) {
+
     }
 
     public get seed(): R {
@@ -36,15 +50,15 @@ export abstract class Instance<R extends RenderableAtPoint> implements Placeable
     private _location: Point;
 }
 
-export class PassiveInstance<R extends RenderableAtPoint> extends Instance<R> {
+export class PassiveInstance<IP extends InstanceProperties, R extends RenderableAtPoint> extends Instance<IP, R> {
 
 }
 
-export class InteractiveInstance<IA extends InputAccumalator, R extends RenderableAtPoint> extends Instance<R> {
-    constructor(config: InstanceConfig<R>, inputAccumalator: IA) {
+export class InteractiveInstance<IA extends InputAccumalator, IP extends InstanceProperties, R extends RenderableAtPoint> extends Instance<IP, R> {
+    constructor(config: InteractiveInstanceConfig<IA, IP, R>) {
         super(config);
 
-        this._inputAccumalator = inputAccumalator;
+        this._inputAccumalator = config.inputAccumalator;
     }
 
     protected get inputAccumalator(): IA {

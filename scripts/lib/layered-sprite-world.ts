@@ -1,5 +1,6 @@
+
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
-import { Instance, InstanceConfig, InteractiveInstance, PassiveInstance } from "./instance.js";
+import { Instance, InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, InstanceProperties } from "./instance.js";
 import { Point, RenderableAtPoint } from "./common.js";
 import { SpriteContainerConfig, SpriteContainer, ContainerManager } from "./container.js";
 import { SpriteConfig, SpriteManager } from "./sprite.js";
@@ -23,13 +24,13 @@ export interface SpriteLayerConfig {
         width?: number
     },
     sprites: SpriteLayerLocations,
-    containers?: SpriteLayerLocations
+    instances?: SpriteLayerLocations
 }
 interface SpriteLayerLocations {
     [key: string]: Array<Array<number>>
 }
 
-class SpriteContainerBlock<I extends Instance<RenderableAtPoint>> extends Block<I> {
+class SpriteContainerBlock<I extends Instance<IP, RenderableAtPoint>, IP extends InstanceProperties> extends Block<I> {
     constructor(row: number, column: number, instance: I) {
         super(row, column);
 
@@ -46,12 +47,12 @@ class SpriteContainerBlock<I extends Instance<RenderableAtPoint>> extends Block<
 /**
  * Represents a layer of sprites which for the background/floor
  */
-export class SpriteLayer extends BlockGridLayer<Instance<RenderableAtPoint>> {
+export class SpriteLayer<IP extends InstanceProperties> extends BlockGridLayer<Instance<IP, RenderableAtPoint>> {
     /**
      * Initializes the layer
      * @param config The configuration for the layer
      */
-    constructor(config: SpriteLayerConfig, spriteManager: SpriteManager, construct: (key: string) => Instance<RenderableAtPoint>) {
+    constructor(config: SpriteLayerConfig, spriteManager: SpriteManager, construct: (key: string) => Instance<IP, RenderableAtPoint>) {
         let stepHeight = 32;
         let stepWidth = 32;
 
@@ -71,15 +72,15 @@ export class SpriteLayer extends BlockGridLayer<Instance<RenderableAtPoint>> {
                     new SpriteContainerBlock(
                         pair[0],
                         pair[1],
-                        new PassiveInstance<SpriteContainer>({ seed: new SpriteContainer([key], spriteManager) })
+                        new PassiveInstance<IP, SpriteContainer>({ seed: new SpriteContainer([key], spriteManager) })
                     )
                 );
             }
         }
 
-        if(config.containers) {
-            for(let key in config.containers) {
-                let pairs = config.containers[key];
+        if(config.instances) {
+            for(let key in config.instances) {
+                let pairs = config.instances[key];
                 for(let pairIndex = 0; pairIndex < pairs.length; pairIndex++) {
                     let pair = pairs[pairIndex];
 
@@ -100,15 +101,16 @@ export class SpriteLayer extends BlockGridLayer<Instance<RenderableAtPoint>> {
  * Represents the configuration of a world with sprite layers an possibily Actors
  */
 export interface LayeredSpriteWorldConfig<
+    IP extends InstanceProperties,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
     SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig, SpriteContainerConfig {
     instances?: {
         passive?: {
-            [key: string]: InstanceConfig<RenderableAtPoint>;
+            [key: string]: IP;
         };
         interactive?: {
-            [key: string]: InstanceConfig<RenderableAtPoint>;
+            [key: string]: IP;
         };
     }
 }
@@ -117,9 +119,10 @@ export interface LayeredSpriteWorldConfig<
  * Generic reperesentation of a world which is composed completely of sprites.
  */
 export abstract class GenericPureSpriteWorld<
-    C extends LayeredSpriteWorldConfig<SMLC, SMLCD, SLC>,
+    C extends LayeredSpriteWorldConfig<IP, SMLC, SMLCD, SLC>,
     IA extends InputAccumalator,
-    SL extends SpriteLayer,
+    IP extends InstanceProperties,
+    SL extends SpriteLayer<IP>,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
     SLC extends SpriteLayerConfig
@@ -141,9 +144,8 @@ export abstract class GenericPureSpriteWorld<
                 for(let key in config.instances.passive) {
                     let container = this.containerManager.getContainer(key);
                     if(container) {
-                        let instanceConfig = config.instances.passive[key];
-                        instanceConfig.seed = container;
-                        this.passiveInstanceConfigMap.set(key, instanceConfig);
+                        let instanceProperties = config.instances.passive[key];
+                        this.passiveInstancePropertiesMap.set(key, instanceProperties);
                     }
                 }
             }
@@ -153,8 +155,7 @@ export abstract class GenericPureSpriteWorld<
                     let container = this.containerManager.getContainer(key);
                     if(container) {
                         let instanceConfig = config.instances.interactive[key];
-                        instanceConfig.seed = container;
-                        this.interactiveInstanceConfigMap.set(key, instanceConfig);
+                        this.interactiveInstancePropertiesMap.set(key, instanceConfig);
                     }
                 }
             }
@@ -168,10 +169,10 @@ export abstract class GenericPureSpriteWorld<
         return this.constructSpriteLayer(config, this.spriteManager, defaults);
     }
 
-    protected constructPassiveInstance(key: string, config: InstanceConfig<RenderableAtPoint>): PassiveInstance<RenderableAtPoint> | never {
+    protected constructPassiveInstance(key: string, config: InstanceConfig<IP, RenderableAtPoint>): PassiveInstance<IP, RenderableAtPoint> | never {
         throw new Error("No interactive instance could be created for the key: " + key);
     }
-    protected constructInteractiveInstance(key: string, config: InstanceConfig<RenderableAtPoint>): InteractiveInstance<IA, RenderableAtPoint> | never {
+    protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<IA, IP, RenderableAtPoint>): InteractiveInstance<IA, IP, RenderableAtPoint> | never {
         throw new Error("No interactive instance could be created for the key: " + key);
     }
 
@@ -210,20 +211,27 @@ export abstract class GenericPureSpriteWorld<
         });
     }
 
-    protected getInteractiveInstanceConfiguration(key: string): InstanceConfig<RenderableAtPoint> | undefined {
-        return this.interactiveInstanceConfigMap.get(key);
+    protected getInteractiveInstanceConfiguration(key: string): InteractiveInstanceConfig<IA, IP, RenderableAtPoint> | undefined {
+        let container = this.containerManager.getContainer(key);
+        if(container) {
+            return {
+                inputAccumalator: this.inputAccumalator,
+                seed: container,
+                properties: this.interactiveInstancePropertiesMap.get(key)
+            };
+        }
     }
 
     private adhocSprites: Array<{ key: string, center: Point}> = [];
 
-    private passiveInstanceConfigMap: Map<string, InstanceConfig<RenderableAtPoint>> = new Map<string, InstanceConfig<RenderableAtPoint>>();
-    private interactiveInstanceConfigMap: Map<string, InstanceConfig<RenderableAtPoint>> = new Map<string, InstanceConfig<RenderableAtPoint>>();
+    private passiveInstancePropertiesMap: Map<string, IP> = new Map<string, IP>();
+    private interactiveInstancePropertiesMap: Map<string, IP> = new Map<string, IP>();
 
     private spriteManager: SpriteManager = new SpriteManager();
     private containerManager: ContainerManager = new ContainerManager();
 }
 
-export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
+export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<any, SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
 
 }
 
@@ -237,7 +245,8 @@ export interface SimpleSpriteMultilayerLayoutConfig extends SpriteMultilayerLayo
 export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
     SimpleMultilayeredSpriteWorldConfig,
     SimpleInputAccumalator,
-    SpriteLayer,
+    any,
+    SpriteLayer<any>,
     SimpleSpriteMultilayerLayoutConfig,
     SpriteMultilayerLayoutConfigDefaults,
     SpriteLayerConfig> {
@@ -247,7 +256,7 @@ export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
         this.ia = new SimpleInputAccumalator(canvas);
     }
 
-    protected constructSpriteLayer(config: SpriteLayerConfig, spriteManager: SpriteManager, defaults?: SpriteMultilayerLayoutConfigDefaults): SpriteLayer {
+    protected constructSpriteLayer(config: SpriteLayerConfig, spriteManager: SpriteManager, defaults?: SpriteMultilayerLayoutConfigDefaults): SpriteLayer<any> {
         if(defaults !== undefined) {
             if(config.step === undefined) {
                 config.step = {
@@ -263,7 +272,7 @@ export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
         return new SpriteLayer(config, spriteManager, (key: string) => {
             let config = this.getInteractiveInstanceConfiguration(key);
             if(config) {
-                return this.constructInteractiveInstance(key, config) as Instance<RenderableAtPoint>;
+                return this.constructInteractiveInstance(key, config) as Instance<any, RenderableAtPoint>;
             }
             throw new Error("No configuration found for interactive instance " + key);
         });

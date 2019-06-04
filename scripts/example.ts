@@ -1,6 +1,6 @@
 import { SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
-import { InstanceConfig, InteractiveInstance } from "./lib/instance.js";
+import { InstanceConfig, InteractiveInstance, InteractiveInstanceConfig } from "./lib/instance.js";
 import { Point, RenderableAtPoint } from "./lib/common.js";
 import { SpriteContainer } from "./lib/container.js";
 
@@ -8,7 +8,7 @@ import { SpriteContainer } from "./lib/container.js";
  * Only things which need to be implemented to create a new canvas world.
  */
 
-export class Soldier extends InteractiveInstance<SimpleInputAccumalator, SpriteContainer> {
+export class Soldier extends InteractiveInstance<SimpleInputAccumalator, any, SpriteContainer> {
     public update(dt: number): void {
         super.update(dt);
 
@@ -32,7 +32,7 @@ export class Soldier extends InteractiveInstance<SimpleInputAccumalator, SpriteC
     }
 }
 
-class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, SpriteContainer> {
+class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, any, SpriteContainer> {
     public update(dt: number): void {
         super.update(dt);
 
@@ -49,14 +49,14 @@ class MyWorld extends SimpleSpriteWorld {
         super.onConfigurationLoaded(config);
     }
 
-    protected constructInteractiveInstance(key: string, actorConfig: InstanceConfig<RenderableAtPoint>): InteractiveInstance<SimpleInputAccumalator, RenderableAtPoint> | never {
+    protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<SimpleInputAccumalator, any, SpriteContainer>): InteractiveInstance<SimpleInputAccumalator, any, RenderableAtPoint> | never {
         if(key === "Soldier") {
-            return new Soldier(actorConfig as InstanceConfig<SpriteContainer>, this.inputAccumalator);
+            return new Soldier(config);
         } else if(key === "ToggleTile") {
-            return new ToggleTile(actorConfig as InstanceConfig<SpriteContainer>, this.inputAccumalator);
+            return new ToggleTile(config);
         }
         
-        return super.constructInteractiveInstance(key, actorConfig);
+        return super.constructInteractiveInstance(key, config);
     }
 
     public onUpdate(dt: number): void {
