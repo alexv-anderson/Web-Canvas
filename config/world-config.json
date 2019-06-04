@@ -75,12 +75,12 @@
             ]
         }
     ],
-    "layers": {
+    "layout": {
         "defaults": {
             "stepHeight": 32,
             "stepWidth": 32
         },
-        "index": [
+        "layers": [
             {
                 "sprites": {
                     "wr": [

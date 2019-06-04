@@ -17,7 +17,7 @@ export interface Layer extends Renderable, Updatable {
 /**
  * Represents a list of layers
  */
-export class LayeredLayout<L extends Layer> implements Renderable {
+export class LayeredLayout<L extends Layer> implements Renderable, Updatable {
     /**
      * Adds a layer on top of the existing layers
      * @param layer The layer to be placed at the top of the list
@@ -51,10 +51,22 @@ export class LayeredLayout<L extends Layer> implements Renderable {
         this.layers.forEach((layer: Layer) => { layer.render(context); });
     }
 
+    public update(dt: number): void {
+        this.layers.forEach(layer => layer.update(dt));
+    }
+
     private layers: Array<L> = [];
 }
 
+/**
+ * A block in a BlockGridLayer
+ */
 export abstract class Block<C extends Placeable & Renderable & Updatable> implements Placeable, Renderable, Updatable {
+    /**
+     * Initializes the block's location
+     * @param row The block's row
+     * @param column The block's column
+     */
     constructor(row: number, column: number) {
         this._row = row;
         this._column = column;
@@ -70,9 +82,15 @@ export abstract class Block<C extends Placeable & Renderable & Updatable> implem
 
     protected abstract get contents(): C;
 
+    /**
+     * The block's row
+     */
     public get row(): number {
         return this._row;
     }
+    /**
+     * The block's column
+     */
     public get column(): number {
         return this._column;
     }
@@ -88,7 +106,15 @@ export abstract class Block<C extends Placeable & Renderable & Updatable> implem
     private _column: number;
 }
 
+/**
+ * Implements a layer which is composed of a grid of blocks
+ */
 export class BlockGridLayer<C extends Placeable & Renderable & Updatable> implements Layer {
+    /**
+     * Initializes the layer
+     * @param rowHeight The height of each row in pixels
+     * @param columnWidth The width of each column in pixels
+     */
     constructor(rowHeight: number, columnWidth: number) {
         this._blocks = new Array<Block<C>>();
 

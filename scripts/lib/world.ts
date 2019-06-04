@@ -1,17 +1,22 @@
 
 import { loadJSON } from "./web-loaders.js";
 
-export interface WorldConfig {
+export interface WorldConfig<LC extends LayoutConfig> {
     view: {
         width: number,
         height: number
-    }
+    };
+    layout?: LC;
+}
+
+export interface LayoutConfig {
+
 }
 
 /**
  * Reperesents everything on the canvas
  */
-export abstract class World<C extends WorldConfig> {
+export abstract class World<C extends WorldConfig<LC>, LC extends LayoutConfig> {
     /**
      * Initializes the world
      * @param canvas The canvas on which the world should be drawn

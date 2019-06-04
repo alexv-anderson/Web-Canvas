@@ -2,14 +2,14 @@ import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Point, Placeable, Renderable, Updatable, RenderableAtPoint } from "./common.js";
 import { SpriteContainerConfig, SpriteContainer, ContainerManager } from "./container.js";
 import { SpriteConfig, SpriteManager } from "./sprite.js";
-import { LayeredWorld, LayeredWorldConfig, LayerConfig } from "./layered-world.js";
+import { LayeredWorld, LayeredWorldConfig, LayeredLayoutConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
-export interface SpriteMultilayerLayoutConfig<SLC extends SpriteLayerConfig, SMLCD extends SpriteMultilayerLayoutConfigDefaults> extends LayerConfig {
-    defaults?: SMLCD,
-    index: Array<SLC>,
-    arrangement?: Array<number>
-};
+export interface SpriteMultilayerLayoutConfig<
+    SLC extends SpriteLayerConfig,
+    SMLCD extends SpriteMultilayerLayoutConfigDefaults> extends LayeredLayoutConfig<SLC, SMLCD> {
+
+}
 
 export interface SpriteMultilayerLayoutConfigDefaults {
     stepHeight?: number
@@ -150,7 +150,10 @@ export class InteractiveInstance<IA extends InputAccumalator, R extends Renderab
 /**
  * Represents the configuration of a world with sprite layers an possibily Actors
  */
-export interface LayeredSpriteWorldConfig<SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>, SMLCD extends SpriteMultilayerLayoutConfigDefaults, SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SMLC>, SpriteConfig, SpriteContainerConfig {
+export interface LayeredSpriteWorldConfig<
+    SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
+    SMLCD extends SpriteMultilayerLayoutConfigDefaults,
+    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig, SpriteContainerConfig {
     instances?: {
         passive?: {
             [key: string]: InstanceConfig<RenderableAtPoint>;
@@ -171,7 +174,7 @@ export abstract class GenericPureSpriteWorld<
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
     SLC extends SpriteLayerConfig
-    > extends LayeredWorld<C, SL, SMLC> {
+    > extends LayeredWorld<C, SL, SLC, SMLCD, SMLC> {
     
     protected onConfigurationLoaded(config: C): void {
 
@@ -212,20 +215,8 @@ export abstract class GenericPureSpriteWorld<
         super.onConfigurationLoaded(config);
     }
 
-    protected onLayerConfigurationLoaded(config: SMLC): void {
-        super.onLayerConfigurationLoaded(config);
-
-        let constructedLayers = config.index.map(layerConfig => this.constructSpriteLayer(
-            layerConfig,
-            this.spriteManager,
-            config.defaults
-        ));
-
-        if(config.arrangement) {
-            config.arrangement.forEach(layerIndex => this.addLayer(constructedLayers[layerIndex]));
-        } else {
-            constructedLayers.forEach(layer => this.addLayer(layer));
-        }
+    protected constructLayer(config: SLC, defaults?: SMLCD): SL {
+        return this.constructSpriteLayer(config, this.spriteManager, defaults);
     }
 
     protected constructPassiveInstance(key: string, config: InstanceConfig<RenderableAtPoint>): PassiveInstance<RenderableAtPoint> | never {

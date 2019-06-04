@@ -41,12 +41,12 @@ The layout and contents of the canvas/world are specified in a JSON file similar
             ]
         }
     ],
-    "layers": {
+    "layout": {
         "defaults": {
             "stepHeight": 32,
             "stepWidth": 32
         },
-        "index": [
+        "layers": [
             {
                 "sprites": {
                     "wd": [
@@ -111,11 +111,11 @@ The layout and contents of the canvas/world are specified in a JSON file similar
       - `framesPerSecond` is the number of frames which should be shown in a single second. If no `frame` object is given, then a default value of `32` is used.
       - `loop` is a boolean flag indicating if the the zeroth frame should be shown after the last frame creating a looped animation. If no `frame` object is given, then a default value of `true` is used.
       - `autoStart` is a boolean flag indicating of the progression of frames should begin once the world has been set into motion. If no `frame` object is given, then a default value of `false` is used.
-- `layers` describes the layers in the world.
+- `layout` _(Optional)_ describes the layers in the world.
     - `defaults`  _(Optional)_ sets default values for the per-layer properties
         - `stepHeight` _(Optional)_ the default step height used by all layers
         - `stepWidth` _(Optional)_ the default step width used by all layers
-    - `index` is a list of objects which describe the layers of sprites.
+    - `layers` is a list of objects which describe the layers of sprites.
         - `step` _(Optional)_ describes the step sizes used by the layer to form its grid
             - `height` _(Optional)_ is the number of pixels between the layer's horizontal gird lines
             - `width` _(Optional)_ is the number of pixels between the layer's vertical gird lines

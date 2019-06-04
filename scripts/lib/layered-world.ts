@@ -1,12 +1,19 @@
 
-import { World, WorldConfig } from "./world.js";
+import { World, WorldConfig, LayoutConfig } from "./world.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
-export interface LayeredWorldConfig<LC extends LayerConfig> extends WorldConfig {
-    layers: LC
+export interface LayeredWorldConfig<LC extends LayerConfig, LCD extends LayerConfigDefaults, LLC extends LayeredLayoutConfig<LC, LCD>> extends WorldConfig<LLC> {
+    
 }
-
+export interface LayeredLayoutConfig<LC extends LayerConfig, LCD> extends LayoutConfig {
+    defaults?: LCD;
+    layers: Array<LC>;
+    arrangement?: Array<number>;
+}
 export interface LayerConfig {
+
+}
+export interface LayerConfigDefaults {
 
 }
 
@@ -14,55 +21,52 @@ export interface LayerConfig {
  * Reperesents everything on the canvas
  */
 export abstract class LayeredWorld<
-    C extends LayeredWorldConfig<LC>,
+    C extends LayeredWorldConfig<LC, LCD, LLC>,
     L extends Layer,
-    LC extends LayerConfig
-    > extends World<C> {
+    LC extends LayerConfig,
+    LCD extends LayerConfigDefaults,
+    LLC extends LayeredLayoutConfig<LC, LCD>
+    > extends World<C, LLC> {
 
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
 
-        this.onLayerConfigurationLoaded(config.layers);
-    }
+        if(config.layout !== undefined) {
+            let constructedLayers = new Array<L>();
+            if(config.layout.defaults !== undefined) {
+                let defaults = config.layout.defaults;
+                constructedLayers = config.layout.layers.map(layerConfig => this.constructLayer(layerConfig, defaults));
+            } else {
+                constructedLayers = config.layout.layers.map(layerConfig => this.constructLayer(layerConfig));
+            }
 
-    protected onLayerConfigurationLoaded(config: LC): void {
-
-    }
-
-    protected onUpdate(dt: number) {
-        super.onUpdate(dt);
-        
-        for(let i = 0; i < this.layout.depth; i++) {
-            this.layout.getLayer(i).update(dt);
+            if(config.layout.arrangement) {
+                config.layout.arrangement.forEach(layerIndex => this.layout.addLayer(constructedLayers[layerIndex]));
+            } else {
+                constructedLayers.forEach(layer => this.layout.addLayer(layer));
+            }
         }
     }
 
     /**
-     * Renders the world
-     * @param spriteMap A map from keys to sprites
-     * @param context The rendering context of the canvas on which the world should be rendered
+     * Constructs and returns a list of the layers for the world
+     * @param config Configuration data for the layers
      */
-    public render(): void {
-        // Draw sprites
-        this.layout.render(this.drawingContext);
+    protected abstract constructLayer(config: LC, defaults?: LCD): L;
 
-        super.render();
+    protected onUpdate(dt: number) {
+        super.onUpdate(dt);
+        
+        this.layout.update(dt);
     }
 
     /**
-     * Adds a layer to the top of the world's stack of layers
-     * @param layer The layer to be added
+     * Renders the world
      */
-    protected addLayer(layer: L) {
-        this.layout.addLayer(layer);
-    }
+    public render(): void {
+        this.layout.render(this.drawingContext);
 
-    protected get numberOfLayers(): number {
-        return this.layout.depth;
-    }
-
-    protected getLayerAtIndex(index: number): L {
-        return this.layout.getLayer(index);
+        super.render();
     }
 
     private layout: LayeredLayout<L> = new LayeredLayout<L>();
