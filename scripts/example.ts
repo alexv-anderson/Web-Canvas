@@ -1,5 +1,6 @@
-import { InteractiveInstance, SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig, InstanceConfig } from "./lib/layered-sprite-world.js";
+import { SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
+import { InstanceConfig, InteractiveInstance } from "./lib/instance.js";
 import { Point, RenderableAtPoint } from "./lib/common.js";
 import { SpriteContainer } from "./lib/container.js";
 
