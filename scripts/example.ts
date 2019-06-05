@@ -1,6 +1,6 @@
 import { SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
-import { InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance } from "./lib/instance.js";
+import { PassiveInstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance } from "./lib/instance.js";
 import { Point, RenderableAtPoint } from "./lib/common.js";
 import { SpriteContainer } from "./lib/container.js";
 
@@ -79,7 +79,7 @@ class MyWorld extends SimpleSpriteWorld {
         return super.constructInteractiveInstance(key, config);
     }
 
-    protected constructPassiveInstance(key: string, config: InstanceConfig<any, SpriteContainer>): PassiveInstance<any, RenderableAtPoint> | never {
+    protected constructPassiveInstance(key: string, config: PassiveInstanceConfig<any, SpriteContainer>): PassiveInstance<any, RenderableAtPoint> | never {
         if(key = "BlinkTile") {
             return new BlinkTile(config);
         }

@@ -1,6 +1,6 @@
 
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
-import { Instance, InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, InstanceProperties, InstanceConfigurations, InstanceManager } from "./instance.js";
+import { Instance, InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, PassiveInstanceConfig, InstanceProperties, InstanceConfigurations, InstanceManager } from "./instance.js";
 import { Point, RenderableAtPoint } from "./common.js";
 import { SpriteContainerConfig, SpriteContainer, SpriteContainerManager, ContainerConfigurations } from "./container.js";
 import { SpriteConfig, SpriteManager } from "./sprite.js";
@@ -135,8 +135,9 @@ export interface LayeredSpriteWorldConfig<
     IP extends InstanceProperties,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
-    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig, InstanceConfigurations<IP> {
-    containers?: ContainerConfigurations<SpriteContainerConfig>
+    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig {
+    containers?: ContainerConfigurations<SpriteContainerConfig>;
+    instances?: InstanceConfigurations<IP>;
 }
 
 /**
@@ -160,7 +161,9 @@ export abstract class GenericPureSpriteWorld<
             this.containerManager.fill(config.containers);
         }
 
-        this.instanceManager.fill(config);
+        if(config.instances) {
+            this.instanceManager.fill(config.instances);
+        }
 
         super.onConfigurationLoaded(config);
     }
@@ -169,7 +172,7 @@ export abstract class GenericPureSpriteWorld<
         return this.constructSpriteLayer(config, this.spriteManager, defaults);
     }
 
-    protected constructPassiveInstance(key: string, config: InstanceConfig<KIP, RenderableAtPoint>): PassiveInstance<KIP, RenderableAtPoint> | never {
+    protected constructPassiveInstance(key: string, config: PassiveInstanceConfig<KIP, RenderableAtPoint>): PassiveInstance<KIP, RenderableAtPoint> | never {
         throw new Error("No interactive instance could be created for the key: " + key);
     }
     protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<IA, KIP, RenderableAtPoint>): InteractiveInstance<IA, KIP, RenderableAtPoint> | never {
@@ -218,7 +221,7 @@ export abstract class GenericPureSpriteWorld<
             properties => this.containerManager.buildContainer(properties.key, this.spriteManager)
         );
     }
-    protected getPassiveInstanceConfiguration(key: string): InstanceConfig<KIP, RenderableAtPoint> | undefined {
+    protected getPassiveInstanceConfiguration(key: string): PassiveInstanceConfig<KIP, RenderableAtPoint> | undefined {
         return this.instanceManager.assemblePassiveInstanceConfig(
             key,
             properties => this.containerManager.buildContainer(properties.key, this.spriteManager)

@@ -6,22 +6,23 @@ export interface InstanceConfig<IP extends InstanceProperties, R extends Rendera
     seed: R;
     properties?: IP;
 }
+export interface InteractiveInstanceConfig<IA extends InputAccumalator, IP extends InstanceProperties, R extends RenderableAtPoint> extends InstanceConfig<IP, R> {
+    inputAccumalator: IA;
+}
+export interface PassiveInstanceConfig<IP extends InstanceProperties, R extends RenderableAtPoint> extends InstanceConfig<IP, R> {
+    
+}
+
 export interface InstanceProperties {
 
 }
 export interface InstanceConfigurations<IP extends InstanceProperties> {
-    instances?: {
-        passive?: {
-            [key: string]: IP;
-        };
-        interactive?: {
-            [key: string]: IP;
-        };
-    }
-}
-
-export interface InteractiveInstanceConfig<IA extends InputAccumalator, IP extends InstanceProperties, R extends RenderableAtPoint> extends InstanceConfig<IP, R> {
-    inputAccumalator: IA;
+    passive?: {
+        [key: string]: IP;
+    };
+    interactive?: {
+        [key: string]: IP;
+    };
 }
 
 export abstract class Instance<IP extends InstanceProperties, R extends RenderableAtPoint> implements Placeable, Renderable, Updatable {
@@ -61,7 +62,9 @@ export abstract class Instance<IP extends InstanceProperties, R extends Renderab
 }
 
 export class PassiveInstance<IP extends InstanceProperties, R extends RenderableAtPoint> extends Instance<IP, R> {
-
+    constructor(config: PassiveInstanceConfig<IP, R>) {
+        super(config);
+    }
 }
 
 export class InteractiveInstance<IA extends InputAccumalator, IP extends InstanceProperties, R extends RenderableAtPoint> extends Instance<IP, R> {
@@ -80,19 +83,17 @@ export class InteractiveInstance<IA extends InputAccumalator, IP extends Instanc
 
 export class InstanceManager<IA extends InputAccumalator, IP extends InstanceProperties, R extends RenderableAtPoint> {
     fill(config: InstanceConfigurations<IP>): void {
-        if(config.instances) {
-            if(config.instances.passive) {
-                for(let key in config.instances.passive) {
-                    let instanceProperties = config.instances.passive[key];
-                    this.passiveInstancePropertiesMap.set(key, instanceProperties);
-                }
+        if(config.passive) {
+            for(let key in config.passive) {
+                let instanceProperties = config.passive[key];
+                this.passiveInstancePropertiesMap.set(key, instanceProperties);
             }
+        }
 
-            if(config.instances.interactive) {
-                for(let key in config.instances.interactive) {
-                    let instanceConfig = config.instances.interactive[key];
-                    this.interactiveInstancePropertiesMap.set(key, instanceConfig);
-                }
+        if(config.interactive) {
+            for(let key in config.interactive) {
+                let instanceConfig = config.interactive[key];
+                this.interactiveInstancePropertiesMap.set(key, instanceConfig);
             }
         }
     }
@@ -111,7 +112,7 @@ export class InstanceManager<IA extends InputAccumalator, IP extends InstancePro
         }
     }
 
-    public assemblePassiveInstanceConfig(key: string, getRenderableAtPoint: (properties: IP) => R | undefined): InstanceConfig<IP, R> | undefined {
+    public assemblePassiveInstanceConfig(key: string, getRenderableAtPoint: (properties: IP) => R | undefined): PassiveInstanceConfig<IP, R> | undefined {
         let properties = this.passiveInstancePropertiesMap.get(key);
         if(properties) {
             let seed = getRenderableAtPoint(properties);
