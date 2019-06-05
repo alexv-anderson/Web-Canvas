@@ -61,30 +61,34 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
     private _renderAtCenter: boolean;
 }
 
+export interface ContainerConfigurations<CC extends ContainerConfig> {
+    [key: string]: CC
+}
+export interface ContainerConfig {
+
+}
 /**
  * Manages the containers which are available
  */
-export class ContainerManager<SCC extends SpriteContainerConfig> implements Updatable {
-    constructor(spriteManager: SpriteManager) {
-        this.spriteManager = spriteManager;
-    }
+export interface ContainerManager<CC extends ContainerConfig> extends Updatable {
+    fill(config: ContainerConfigurations<CC>): void;
+}
 
+export interface SpriteContainerConfig extends ContainerConfig {
+    sprites: Array<string>;
+}
+export class SpriteContainerManager<SCC extends SpriteContainerConfig> implements ContainerManager<SCC> {
     /**
      * Fills the manager with the containers describe in the configuration data.
      * 
      * Note: If the key of a newly loaded container conflicts with an existing key, then the old
      *   key and its container will be replaced by the newly loaded container
-     * @param config Configuration data for the new containers
-     * @param spriteManager The sprite manager which should be used by the containers
+     * @param configrations Configuration data for the new containers
      */
-    public fill(
-        config: ContainerConfigurations<SCC>): void {
-
-        if(config.containers) {
-            for(let key in config.containers) {
-                this.containerConfigMap.set(key, config.containers[key]);
-                this.nextNumberMap.set(key, 1);
-            }
+    public fill(configrations: ContainerConfigurations<SCC>): void {
+        for(let key in configrations) {
+            this.containerConfigMap.set(key, configrations[key]);
+            this.nextNumberMap.set(key, 1);
         }
     }
 
@@ -92,13 +96,13 @@ export class ContainerManager<SCC extends SpriteContainerConfig> implements Upda
         this.containerMap.forEach(container => container.update(dt));
     }
 
-    public buildContainer(configKey: string): SpriteContainer | undefined {
+    public buildContainer(configKey: string, spriteManager: SpriteManager): SpriteContainer | undefined {
         let config = this.containerConfigMap.get(configKey);
         let num = this.nextNumberMap.get(configKey);
         if(config && num) {
 
             let containerKey = configKey + num;
-            let container = new SpriteContainer(config.sprites, this.spriteManager);
+            let container = new SpriteContainer(config.sprites, spriteManager);
 
             this.containerMap.set(
                 containerKey,
@@ -111,20 +115,7 @@ export class ContainerManager<SCC extends SpriteContainerConfig> implements Upda
         }
     }
 
-    private spriteManager: SpriteManager;
     private nextNumberMap: Map<string, number> = new Map<string, number>();
     private containerConfigMap: Map<string, SCC> = new Map<string, SCC>();
     private containerMap: Map<string, SpriteContainer> = new Map<string, SpriteContainer>();
-}
-
-export interface SpriteContainerConfig extends ContainerConfig {
-    sprites: Array<string>;
-}
-export interface ContainerConfig {
-
-}
-export interface ContainerConfigurations<CC extends ContainerConfig> {
-    containers?: {
-        [key: string]: CC
-    }
 }

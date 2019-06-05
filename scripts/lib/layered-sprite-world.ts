@@ -2,7 +2,7 @@
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Instance, InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, InstanceProperties, InstanceConfigurations, InstanceManager } from "./instance.js";
 import { Point, RenderableAtPoint } from "./common.js";
-import { SpriteContainerConfig, SpriteContainer, ContainerManager, ContainerConfigurations } from "./container.js";
+import { SpriteContainerConfig, SpriteContainer, SpriteContainerManager, ContainerConfigurations } from "./container.js";
 import { SpriteConfig, SpriteManager } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayeredLayoutConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
@@ -135,8 +135,8 @@ export interface LayeredSpriteWorldConfig<
     IP extends InstanceProperties,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
-    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig, ContainerConfigurations<SpriteContainerConfig>, InstanceConfigurations<IP> {
-    
+    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig, InstanceConfigurations<IP> {
+    containers?: ContainerConfigurations<SpriteContainerConfig>
 }
 
 /**
@@ -157,7 +157,7 @@ export abstract class GenericPureSpriteWorld<
         config.spriteSources.forEach(source => this.spriteManager.loadSpriteSource(source));
 
         if(config.containers) {
-            this.containerManager.fill(config);
+            this.containerManager.fill(config.containers);
         }
 
         this.instanceManager.fill(config);
@@ -215,20 +215,20 @@ export abstract class GenericPureSpriteWorld<
         return this.instanceManager.assembleInteractiveInstanceConfig(
             key,
             this.inputAccumalator,
-            properties => this.containerManager.buildContainer(properties.key)
+            properties => this.containerManager.buildContainer(properties.key, this.spriteManager)
         );
     }
     protected getPassiveInstanceConfiguration(key: string): InstanceConfig<KIP, RenderableAtPoint> | undefined {
         return this.instanceManager.assemblePassiveInstanceConfig(
             key,
-            properties => this.containerManager.buildContainer(properties.key)
+            properties => this.containerManager.buildContainer(properties.key, this.spriteManager)
         );
     }
 
     private adhocSprites: Array<{ key: string, center: Point}> = [];
 
     private spriteManager: SpriteManager = new SpriteManager();
-    private containerManager: ContainerManager<SpriteContainerConfig> = new ContainerManager<SpriteContainerConfig>(this.spriteManager);
+    private containerManager: SpriteContainerManager<SpriteContainerConfig> = new SpriteContainerManager<SpriteContainerConfig>();
     private instanceManager: InstanceManager<IA, KIP, RenderableAtPoint> = new InstanceManager<IA, KIP, RenderableAtPoint>();
 }
 
