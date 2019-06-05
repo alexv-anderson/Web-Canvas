@@ -125,27 +125,21 @@
             }
         ]
     },
-    "containers": [
-        {
-            "key": "roman-soldier",
+    "containers": {
+        "roman-soldier": {
             "sprites": [ "rsl", "g" ]
         },
-        {
-            "key": "toggle-tile",
-            "sprites": [ "wr", "g" ]
-        },
-        {
-            "key": "toggle-tile-1",
+        "toggle-tile": {
             "sprites": [ "wr", "g" ]
         }
-    ],
+    },
     "instances": {
         "interactive": {
             "Soldier": { "key": "roman-soldier" },
             "ToggleTile": { "key": "toggle-tile" }
         },
         "passive": {
-            "BlinkTile": { "key": "toggle-tile-1" }
+            "BlinkTile": { "key": "toggle-tile" }
         }
     }
 }

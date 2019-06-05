@@ -64,7 +64,11 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
 /**
  * Manages the containers which are available
  */
-export class ContainerManager implements Updatable {
+export class ContainerManager<SCC extends SpriteContainerConfig> implements Updatable {
+    constructor(spriteManager: SpriteManager) {
+        this.spriteManager = spriteManager;
+    }
+
     /**
      * Fills the manager with the containers describe in the configuration data.
      * 
@@ -74,13 +78,13 @@ export class ContainerManager implements Updatable {
      * @param spriteManager The sprite manager which should be used by the containers
      */
     public fill(
-        config: SpriteContainerConfig, spriteManager: SpriteManager): void {
+        config: ContainerConfigurations<SCC>): void {
 
         if(config.containers) {
-            config.containers.forEach(containerConfig => this.containerMap.set(
-                containerConfig.key,
-                new SpriteContainer(containerConfig.sprites, spriteManager)
-            ));
+            for(let key in config.containers) {
+                this.containerConfigMap.set(key, config.containers[key]);
+                this.nextNumberMap.set(key, 1);
+            }
         }
     }
 
@@ -88,35 +92,39 @@ export class ContainerManager implements Updatable {
         this.containerMap.forEach(container => container.update(dt));
     }
 
-    /**
-     * Draws the container associated with the given key on the canvas at the given coordinates.
-     * 
-     * @param context The canvas' 2D rendering context
-     * @param containerKey The key of the container to be drawn at the given coordinates
-     * @param point The point to be given to the container's render method
-     */
-    public renderAt(context: CanvasRenderingContext2D, containerKey: string, point: Point): void {
-        let container = this.getContainer(containerKey);
+    public buildContainer(configKey: string): SpriteContainer | undefined {
+        let config = this.containerConfigMap.get(configKey);
+        let num = this.nextNumberMap.get(configKey);
+        if(config && num) {
 
-        if(container) {
-            container.renderAt(context, point);
+            let containerKey = configKey + num;
+            let container = new SpriteContainer(config.sprites, this.spriteManager);
+
+            this.containerMap.set(
+                containerKey,
+                container
+            );
+
+            this.nextNumberMap.set(configKey, num+1);
+
+            return container;
         }
     }
 
-    /**
-     * Supplies the container for the given key if it exists
-     * @param containerKey The key of the desired container
-     */
-    public getContainer(containerKey: string): SpriteContainer | undefined {
-        return this.containerMap.get(containerKey);
-    }
-
+    private spriteManager: SpriteManager;
+    private nextNumberMap: Map<string, number> = new Map<string, number>();
+    private containerConfigMap: Map<string, SCC> = new Map<string, SCC>();
     private containerMap: Map<string, SpriteContainer> = new Map<string, SpriteContainer>();
 }
 
-export interface SpriteContainerConfig {
-    containers?: [{
-        key: string;
-        sprites: Array<string>;
-    }];
+export interface SpriteContainerConfig extends ContainerConfig {
+    sprites: Array<string>;
+}
+export interface ContainerConfig {
+
+}
+export interface ContainerConfigurations<CC extends ContainerConfig> {
+    containers?: {
+        [key: string]: CC
+    }
 }
