@@ -3,7 +3,7 @@ import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
 import { Instance, InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, PassiveInstanceConfig, InstanceProperties, InstanceConfigurations, InstanceManager } from "./instance.js";
 import { Point, RenderableAtPoint } from "./common.js";
 import { SpriteContainerConfig, SpriteContainer, SpriteContainerManager, ContainerConfigurations } from "./container.js";
-import { SpriteConfig, SpriteManager } from "./sprite.js";
+import { SpriteSheetSource, SpriteManager } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayeredLayoutConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
@@ -135,9 +135,12 @@ export interface LayeredSpriteWorldConfig<
     IP extends InstanceProperties,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
-    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC>, SpriteConfig {
-    containers?: ContainerConfigurations<SpriteContainerConfig>;
-    instances?: InstanceConfigurations<IP>;
+    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC> {
+        sprites: {
+            sources: Array<SpriteSheetSource>;
+            containers?: ContainerConfigurations<SpriteContainerConfig>;
+            instances?: InstanceConfigurations<IP>;
+        };
 }
 
 /**
@@ -155,14 +158,14 @@ export abstract class GenericPureSpriteWorld<
     
     protected onConfigurationLoaded(config: C): void {
 
-        config.spriteSources.forEach(source => this.spriteManager.loadSpriteSource(source));
+        config.sprites.sources.forEach(source => this.spriteManager.loadSpriteSource(source));
 
-        if(config.containers) {
-            this.containerManager.fill(config.containers);
+        if(config.sprites.containers) {
+            this.containerManager.fill(config.sprites.containers);
         }
 
-        if(config.instances) {
-            this.instanceManager.fill(config.instances);
+        if(config.sprites.instances) {
+            this.instanceManager.fill(config.sprites.instances);
         }
 
         super.onConfigurationLoaded(config);

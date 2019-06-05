@@ -3,78 +3,97 @@
         "height": 64,
         "width": 160
     },
-    "spriteSources": [
-        {
-            "baseURL": "./images/",
-            "sheets": [
-                {
-                    "fileName": "TicTacToe.png",
-                    "sprites": [
-                        {
-                            "key": "corner",
-                            "frameHeight": 32,
-                            "frameWidth": 64,
-                            "sourceX": 32,
-                            "sourceY": 64
+    "sprites": {
+        "sources": [
+            {
+                "baseURL": "./images/",
+                "sheets": [
+                    {
+                        "fileName": "TicTacToe.png",
+                        "sprites": [
+                            {
+                                "key": "corner",
+                                "frameHeight": 32,
+                                "frameWidth": 64,
+                                "sourceX": 32,
+                                "sourceY": 64
+                            }
+                        ]
+                    }
+                ],
+                "singles": [
+                    {
+                        "fileName": "moving-water-down-vertical.png",
+                        "key": "wd",
+                        "frameWidth": 32,
+                        "frameHeight": 32,
+                        "frames": {
+                            "numberOfFrames": 4,
+                            "areHorizontal": false,
+                            "framesPerSecond": 4,
+                            "loop": false,
+                            "autoStart": true
                         }
-                    ]
-                }
-            ],
-            "singles": [
-                {
-                    "fileName": "moving-water-down-vertical.png",
-                    "key": "wd",
-                    "frameWidth": 32,
-                    "frameHeight": 32,
-                    "frames": {
-                        "numberOfFrames": 4,
-                        "areHorizontal": false,
-                        "framesPerSecond": 4,
-                        "loop": false,
-                        "autoStart": true
+                    },
+                    {
+                        "fileName": "moving-water-right.png",
+                        "key": "wr",
+                        "frameWidth": 32,
+                        "frameHeight": 32,
+                        "frames": {
+                            "numberOfFrames": 4,
+                            "isHorizontal": true,
+                            "framesPerSecond": 4,
+                            "loop": true,
+                            "autoStart": true
+                        }
+                    },
+                    {
+                        "fileName": "grass.png",
+                        "key": "g",
+                        "frameWidth": 32,
+                        "frameHeight": 32
+                    },
+                    {
+                        "fileName": "roman-soldier-left.png",
+                        "key": "rsl",
+                        "frameWidth": 32,
+                        "frameHeight": 32,
+                        "frames": {
+                            "numberOfFrames": 2,
+                            "isHorizontal": true,
+                            "framesPerSecond": 4,
+                            "loop": true,
+                            "autoStart": true
+                        }
+                    },
+                    {
+                        "fileName": "target.png",
+                        "key": "target",
+                        "frameWidth": 32,
+                        "frameHeight": 32
                     }
-                },
-                {
-                    "fileName": "moving-water-right.png",
-                    "key": "wr",
-                    "frameWidth": 32,
-                    "frameHeight": 32,
-                    "frames": {
-                        "numberOfFrames": 4,
-                        "isHorizontal": true,
-                        "framesPerSecond": 4,
-                        "loop": true,
-                        "autoStart": true
-                    }
-                },
-                {
-                    "fileName": "grass.png",
-                    "key": "g",
-                    "frameWidth": 32,
-                    "frameHeight": 32
-                },
-                {
-                    "fileName": "roman-soldier-left.png",
-                    "key": "rsl",
-                    "frameWidth": 32,
-                    "frameHeight": 32,
-                    "frames": {
-                        "numberOfFrames": 2,
-                        "isHorizontal": true,
-                        "framesPerSecond": 4,
-                        "loop": true,
-                        "autoStart": true
-                    }
-                },
-                {
-                    "fileName": "target.png",
-                    "key": "target",
-                    "frameWidth": 32,
-                    "frameHeight": 32
-                }
-            ]
+                ]
+            }
+        ],
+        "containers": {
+            "roman-soldier": {
+                "sprites": [ "rsl", "g" ]
+            },
+            "toggle-tile": {
+                "sprites": [ "wr", "g" ]
+            }
+        },
+        "instances": {
+            "interactive": {
+                "Soldier": { "key": "roman-soldier" },
+                "ToggleTile": { "key": "toggle-tile" }
+            },
+            "passive": {
+                "BlinkTile": { "key": "toggle-tile" }
+            }
         }
-    ],
+    },
     "layout": {
         "defaults": {
             "stepHeight": 32,
@@ -124,22 +143,5 @@
                 }
             }
         ]
-    },
-    "containers": {
-        "roman-soldier": {
-            "sprites": [ "rsl", "g" ]
-        },
-        "toggle-tile": {
-            "sprites": [ "wr", "g" ]
-        }
-    },
-    "instances": {
-        "interactive": {
-            "Soldier": { "key": "roman-soldier" },
-            "ToggleTile": { "key": "toggle-tile" }
-        },
-        "passive": {
-            "BlinkTile": { "key": "toggle-tile" }
-        }
     }
 }

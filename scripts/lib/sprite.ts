@@ -2,12 +2,8 @@
 import { Point, RenderableAtPoint, Updatable } from "./common.js"
 import { loadPNG } from "./web-loaders.js";
 
-export interface SpriteConfig {
-    spriteSources: Array<SpriteSheetSource>
-}
-
 //#region SpriteSheet Locations and Defaults
-interface SpriteSheetSource {
+export interface SpriteSheetSource {
     baseURL: string;
     sheets: Array<MultispriteSheetDescription>;
     singles: Array<MonospriteSheetDescription>;
