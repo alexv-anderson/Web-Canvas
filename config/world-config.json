@@ -76,7 +76,7 @@
                 ]
             }
         ],
-        "containers": {
+        "groups": {
             "roman-soldier": {
                 "sprites": [ "rsl", "g" ]
             },
@@ -86,11 +86,11 @@
         },
         "instances": {
             "interactive": {
-                "Soldier": { "key": "roman-soldier" },
-                "ToggleTile": { "key": "toggle-tile" }
+                "Soldier": { "groupKey": "roman-soldier" },
+                "ToggleTile": { "groupKey": "toggle-tile" }
             },
             "passive": {
-                "BlinkTile": { "key": "toggle-tile" }
+                "BlinkTile": { "groupKey": "toggle-tile" }
             }
         }
     },

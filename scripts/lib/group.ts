@@ -6,11 +6,11 @@ import { SpriteManager } from "./sprite.js";
  * Holds an array of keys for sprites. By setting the key index the user can control which
  * sprite is rendered by the given manager.
  */
-export class SpriteContainer implements Updatable, RenderableAtPoint {
+export class SpriteGroup implements Updatable, RenderableAtPoint {
     /**
-     * Initializes the container
-     * @param spriteKeys An array of keys for the sprites which are availble to this container
-     * @param spriteManager The sprite manager which the container should use
+     * Initializes the group
+     * @param spriteKeys An array of keys for the sprites which are availble to this group
+     * @param spriteManager The sprite manager which the group should use
      */
     constructor(spriteKeys: Array<string>, spriteManager: SpriteManager) {
         this._spriteKeys = spriteKeys;
@@ -61,61 +61,61 @@ export class SpriteContainer implements Updatable, RenderableAtPoint {
     private _renderAtCenter: boolean;
 }
 
-export interface ContainerConfigurations<CC extends ContainerConfig> {
-    [key: string]: CC
+export interface GroupConfigurations<GC extends GroupConfig> {
+    [key: string]: GC
 }
-export interface ContainerConfig {
+export interface GroupConfig {
 
 }
 /**
- * Manages the containers which are available
+ * Manages the groups which are available
  */
-export interface ContainerManager<CC extends ContainerConfig> extends Updatable {
-    fill(config: ContainerConfigurations<CC>): void;
+export interface GroupManager<GC extends GroupConfig> extends Updatable {
+    fill(config: GroupConfigurations<GC>): void;
 }
 
-export interface SpriteContainerConfig extends ContainerConfig {
+export interface SpriteGroupConfig extends GroupConfig {
     sprites: Array<string>;
 }
-export class SpriteContainerManager<SCC extends SpriteContainerConfig> implements ContainerManager<SCC> {
+export class SpriteGroupManager<SGC extends SpriteGroupConfig> implements GroupManager<SGC> {
     /**
-     * Fills the manager with the containers describe in the configuration data.
+     * Fills the manager with the groups describe in the configuration data.
      * 
-     * Note: If the key of a newly loaded container conflicts with an existing key, then the old
-     *   key and its container will be replaced by the newly loaded container
-     * @param configrations Configuration data for the new containers
+     * Note: If the key of a newly loaded group conflicts with an existing key, then the old
+     *   key and its group will be replaced by the newly loaded group
+     * @param configrations Configuration data for the new groups
      */
-    public fill(configrations: ContainerConfigurations<SCC>): void {
+    public fill(configrations: GroupConfigurations<SGC>): void {
         for(let key in configrations) {
-            this.containerConfigMap.set(key, configrations[key]);
+            this.groupConfigMap.set(key, configrations[key]);
             this.nextNumberMap.set(key, 1);
         }
     }
 
     public update(dt: number): void {
-        this.containerMap.forEach(container => container.update(dt));
+        this.groupMap.forEach(group => group.update(dt));
     }
 
-    public buildContainer(configKey: string, spriteManager: SpriteManager): SpriteContainer | undefined {
-        let config = this.containerConfigMap.get(configKey);
+    public buildGroup(configKey: string, spriteManager: SpriteManager): SpriteGroup | undefined {
+        let config = this.groupConfigMap.get(configKey);
         let num = this.nextNumberMap.get(configKey);
         if(config && num) {
 
-            let containerKey = configKey + num;
-            let container = new SpriteContainer(config.sprites, spriteManager);
+            let groupKey = configKey + num;
+            let group = new SpriteGroup(config.sprites, spriteManager);
 
-            this.containerMap.set(
-                containerKey,
-                container
+            this.groupMap.set(
+                groupKey,
+                group
             );
 
             this.nextNumberMap.set(configKey, num+1);
 
-            return container;
+            return group;
         }
     }
 
     private nextNumberMap: Map<string, number> = new Map<string, number>();
-    private containerConfigMap: Map<string, SCC> = new Map<string, SCC>();
-    private containerMap: Map<string, SpriteContainer> = new Map<string, SpriteContainer>();
+    private groupConfigMap: Map<string, SGC> = new Map<string, SGC>();
+    private groupMap: Map<string, SpriteGroup> = new Map<string, SpriteGroup>();
 }

@@ -2,13 +2,13 @@ import { SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig, KeyedInstancePr
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { PassiveInstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance } from "./lib/instance.js";
 import { Point, RenderableAtPoint } from "./lib/common.js";
-import { SpriteContainer } from "./lib/container.js";
+import { SpriteGroup } from "./lib/group.js";
 
 /*
  * Only things which need to be implemented to create a new canvas world.
  */
 
-export class Soldier extends InteractiveInstance<SimpleInputAccumalator, KeyedInstanceProperties, SpriteContainer> {
+export class Soldier extends InteractiveInstance<SimpleInputAccumalator, KeyedInstanceProperties, SpriteGroup> {
     public update(dt: number): void {
         super.update(dt);
 
@@ -32,7 +32,7 @@ export class Soldier extends InteractiveInstance<SimpleInputAccumalator, KeyedIn
     }
 }
 
-class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, KeyedInstanceProperties, SpriteContainer> {
+class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, KeyedInstanceProperties, SpriteGroup> {
     public update(dt: number): void {
         super.update(dt);
 
@@ -44,7 +44,7 @@ class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, KeyedInstan
     }
 }
 
-class BlinkTile extends PassiveInstance<KeyedInstanceProperties, SpriteContainer> {
+class BlinkTile extends PassiveInstance<KeyedInstanceProperties, SpriteGroup> {
     public update(dt: number): void {
         this.timePassed += dt;
 
@@ -69,7 +69,7 @@ class MyWorld extends SimpleSpriteWorld {
         super.onConfigurationLoaded(config);
     }
 
-    protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<SimpleInputAccumalator, any, SpriteContainer>): InteractiveInstance<SimpleInputAccumalator, any, RenderableAtPoint> | never {
+    protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<SimpleInputAccumalator, any, SpriteGroup>): InteractiveInstance<SimpleInputAccumalator, any, RenderableAtPoint> | never {
         if(key === "Soldier") {
             return new Soldier(config);
         } else if(key === "ToggleTile") {
@@ -79,7 +79,7 @@ class MyWorld extends SimpleSpriteWorld {
         return super.constructInteractiveInstance(key, config);
     }
 
-    protected constructPassiveInstance(key: string, config: PassiveInstanceConfig<any, SpriteContainer>): PassiveInstance<any, RenderableAtPoint> | never {
+    protected constructPassiveInstance(key: string, config: PassiveInstanceConfig<any, SpriteGroup>): PassiveInstance<any, RenderableAtPoint> | never {
         if(key = "BlinkTile") {
             return new BlinkTile(config);
         }

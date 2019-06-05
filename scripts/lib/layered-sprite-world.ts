@@ -1,8 +1,8 @@
 
 import { InputAccumalator, SimpleInputAccumalator } from "./input.js";
-import { Instance, InstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, PassiveInstanceConfig, InstanceProperties, InstanceConfigurations, InstanceManager } from "./instance.js";
+import { Instance, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance, PassiveInstanceConfig, InstanceProperties, InstanceConfigurations, InstanceManager } from "./instance.js";
 import { Point, RenderableAtPoint } from "./common.js";
-import { SpriteContainerConfig, SpriteContainer, SpriteContainerManager, ContainerConfigurations } from "./container.js";
+import { SpriteGroupConfig, SpriteGroup, SpriteGroupManager, GroupConfigurations } from "./group.js";
 import { SpriteSheetSource, SpriteManager } from "./sprite.js";
 import { LayeredWorld, LayeredWorldConfig, LayeredLayoutConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
@@ -34,21 +34,21 @@ interface SpriteLayerLocations {
 }
 
 export interface KeyedInstanceProperties extends InstanceProperties {
-    key: string;
+    groupKey: string;
 }
 
 class InstanceBlock<I extends Instance<KIP, RenderableAtPoint>, KIP extends KeyedInstanceProperties> extends Block<I> {
     constructor(row: number, column: number, instance: I) {
         super(row, column);
 
-        this._container = instance;
+        this._group = instance;
     }
 
     protected get contents(): I {
-        return this._container;
+        return this._group;
     }
 
-    private _container: I;
+    private _group: I;
 }
 
 /**
@@ -84,7 +84,7 @@ export class InstanceBlockLayer<IA extends InputAccumalator, KIP extends KeyedIn
                     new InstanceBlock(
                         pair[0],
                         pair[1],
-                        new PassiveInstance<KIP, SpriteContainer>({ seed: new SpriteContainer([key], spriteManager) })
+                        new PassiveInstance<KIP, SpriteGroup>({ seed: new SpriteGroup([key], spriteManager) })
                     )
                 );
             }
@@ -138,7 +138,7 @@ export interface LayeredSpriteWorldConfig<
     SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC> {
         sprites: {
             sources: Array<SpriteSheetSource>;
-            containers?: ContainerConfigurations<SpriteContainerConfig>;
+            groups?: GroupConfigurations<SpriteGroupConfig>;
             instances?: InstanceConfigurations<IP>;
         };
 }
@@ -160,8 +160,8 @@ export abstract class GenericPureSpriteWorld<
 
         config.sprites.sources.forEach(source => this.spriteManager.loadSpriteSource(source));
 
-        if(config.sprites.containers) {
-            this.containerManager.fill(config.sprites.containers);
+        if(config.sprites.groups) {
+            this.groupManager.fill(config.sprites.groups);
         }
 
         if(config.sprites.instances) {
@@ -189,7 +189,7 @@ export abstract class GenericPureSpriteWorld<
 
         this.spriteManager.updateAllSprites(dt);
 
-        this.containerManager.update(dt);
+        this.groupManager.update(dt);
     }
 
     protected abstract get inputAccumalator(): IA;
@@ -221,20 +221,20 @@ export abstract class GenericPureSpriteWorld<
         return this.instanceManager.assembleInteractiveInstanceConfig(
             key,
             this.inputAccumalator,
-            properties => this.containerManager.buildContainer(properties.key, this.spriteManager)
+            properties => this.groupManager.buildGroup(properties.groupKey, this.spriteManager)
         );
     }
     protected getPassiveInstanceConfiguration(key: string): PassiveInstanceConfig<KIP, RenderableAtPoint> | undefined {
         return this.instanceManager.assemblePassiveInstanceConfig(
             key,
-            properties => this.containerManager.buildContainer(properties.key, this.spriteManager)
+            properties => this.groupManager.buildGroup(properties.groupKey, this.spriteManager)
         );
     }
 
     private adhocSprites: Array<{ key: string, center: Point}> = [];
 
     private spriteManager: SpriteManager = new SpriteManager();
-    private containerManager: SpriteContainerManager<SpriteContainerConfig> = new SpriteContainerManager<SpriteContainerConfig>();
+    private groupManager: SpriteGroupManager<SpriteGroupConfig> = new SpriteGroupManager<SpriteGroupConfig>();
     private instanceManager: InstanceManager<IA, KIP, RenderableAtPoint> = new InstanceManager<IA, KIP, RenderableAtPoint>();
 }
 
