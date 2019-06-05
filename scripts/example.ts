@@ -1,4 +1,4 @@
-import { SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig } from "./lib/layered-sprite-world.js";
+import { SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig, KeyedInstanceProperties } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { PassiveInstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance } from "./lib/instance.js";
 import { Point, RenderableAtPoint } from "./lib/common.js";
@@ -8,7 +8,7 @@ import { SpriteContainer } from "./lib/container.js";
  * Only things which need to be implemented to create a new canvas world.
  */
 
-export class Soldier extends InteractiveInstance<SimpleInputAccumalator, any, SpriteContainer> {
+export class Soldier extends InteractiveInstance<SimpleInputAccumalator, KeyedInstanceProperties, SpriteContainer> {
     public update(dt: number): void {
         super.update(dt);
 
@@ -32,7 +32,7 @@ export class Soldier extends InteractiveInstance<SimpleInputAccumalator, any, Sp
     }
 }
 
-class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, any, SpriteContainer> {
+class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, KeyedInstanceProperties, SpriteContainer> {
     public update(dt: number): void {
         super.update(dt);
 
@@ -44,7 +44,7 @@ class ToggleTile extends InteractiveInstance<SimpleInputAccumalator, any, Sprite
     }
 }
 
-class BlinkTile extends PassiveInstance<any, SpriteContainer> {
+class BlinkTile extends PassiveInstance<KeyedInstanceProperties, SpriteContainer> {
     public update(dt: number): void {
         this.timePassed += dt;
 

@@ -238,7 +238,7 @@ export abstract class GenericPureSpriteWorld<
     private instanceManager: InstanceManager<IA, KIP, RenderableAtPoint> = new InstanceManager<IA, KIP, RenderableAtPoint>();
 }
 
-export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<any, SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
+export interface SimpleMultilayeredSpriteWorldConfig extends LayeredSpriteWorldConfig<KeyedInstanceProperties, SimpleSpriteMultilayerLayoutConfig, SpriteMultilayerLayoutConfigDefaults, SpriteLayerConfig> {
 
 }
 
@@ -252,8 +252,8 @@ export interface SimpleSpriteMultilayerLayoutConfig extends SpriteMultilayerLayo
 export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
     SimpleMultilayeredSpriteWorldConfig,
     SimpleInputAccumalator,
-    any,
-    InstanceBlockLayer<SimpleInputAccumalator, any>,
+    KeyedInstanceProperties,
+    InstanceBlockLayer<SimpleInputAccumalator, KeyedInstanceProperties>,
     SimpleSpriteMultilayerLayoutConfig,
     SpriteMultilayerLayoutConfigDefaults,
     SpriteLayerConfig> {
