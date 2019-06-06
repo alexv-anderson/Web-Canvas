@@ -45,10 +45,15 @@ interface SpriteDescription extends MultiFrameSpriteProperties {
 }
 //#endregion
 
+export interface AccessableSprite {
+    frameHeight: number;
+    frameWidth: number;
+}
+
 /**
  * Represents a sprite which may be encompass some or all of an image.
  */
-export class Sprite implements RenderableAtPoint {
+export class Sprite implements AccessableSprite, RenderableAtPoint {
     /**
      * Initializes the sprite.
      * 
@@ -162,10 +167,15 @@ export class Sprite implements RenderableAtPoint {
     private _frameWidth: number;
 }
 
+export interface AccessableMultiFrameSprite extends AccessableSprite {
+    play(): void;
+    pause(): void;
+}
+
 /**
  * Represents a sprite which may be encompass some or all of an image and is composed of multiple frames.
  */
-export class MultiFrameSprite extends Sprite implements Updatable {
+export class MultiFrameSprite extends Sprite implements AccessableMultiFrameSprite, Updatable {
     /**
      * Initializes the sprite.
      * 
@@ -414,6 +424,18 @@ export class SpriteManager {
             }
 
             sprite.renderAt(context, point);
+        }
+    }
+
+    /**
+     * Allows access to the sprite mapped to the given key if it exists
+     * @param key The key of the sprite which should be accessed
+     * @param accessor The method which will be given access to the sprite if it exists
+     */
+    public accessSprite(key: string, accessor: (sprite: AccessableMultiFrameSprite) => void) {
+        let sprite = this.map.get(key);
+        if(sprite) {
+            accessor(sprite);
         }
     }
 

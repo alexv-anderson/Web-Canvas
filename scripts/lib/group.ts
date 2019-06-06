@@ -1,6 +1,6 @@
 
 import { Point, RenderableAtPoint, Updatable } from "./common.js";
-import { SpriteManager } from "./sprite.js";
+import { SpriteManager, AccessableMultiFrameSprite } from "./sprite.js";
 
 /**
  * Holds an array of keys for sprites. By setting the key index the user can control which
@@ -42,6 +42,13 @@ export class SpriteGroup implements Updatable, RenderableAtPoint {
         this._renderAtCenter = centered;
     }
 
+    /**
+     * Allows access to the current sprite
+     * @param accessor The method which will be given access to the sprite if it exists
+     */
+    public accessCurrentSprite(accessor: (sprite: AccessableMultiFrameSprite) => void) {
+        this._spriteManager.accessSprite(this.currentKey, accessor);
+    }
     /**
      * The currently selected key which will be given to the manager at render time.
      */
