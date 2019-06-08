@@ -60,7 +60,7 @@ class BlinkTile extends PassiveInstance<KeyedInstanceProperties, SpriteGroup> {
         }
     }
 
-    private showingG: boolean;
+    private showingG: boolean = false;
     private timePassed: number = 0;
 }
 
@@ -108,7 +108,7 @@ class MyWorld extends SimpleSpriteWorld {
         this.inputAccumalator.reset();
     }
 
-    private lastClickPoint: Point;
+    private lastClickPoint?: Point;
 }
 
 window.onload = function() {

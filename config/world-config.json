@@ -42,7 +42,7 @@
                         "frameHeight": 32,
                         "frames": {
                             "numberOfFrames": 4,
-                            "isHorizontal": true,
+                            "areHorizontal": true,
                             "framesPerSecond": 4,
                             "loop": true,
                             "autoStart": true
@@ -61,7 +61,7 @@
                         "frameHeight": 32,
                         "frames": {
                             "numberOfFrames": 2,
-                            "isHorizontal": true,
+                            "areHorizontal": true,
                             "framesPerSecond": 4,
                             "loop": true,
                             "autoStart": true

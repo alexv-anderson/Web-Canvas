@@ -22,7 +22,13 @@ export abstract class World<C extends WorldConfig<LC>, LC extends LayoutConfig> 
      * @param canvas The canvas on which the world should be drawn
      */
     constructor(canvas: HTMLCanvasElement, configURL: string) {
-        this.setCanvas(canvas);
+        this.canvas = canvas;
+        let context = canvas.getContext("2d");
+        if(context == null)
+            throw Error("Could not initialize canvas");
+
+        this.context = context;
+
 
         loadJSON(configURL, (config: C) => this.onConfigurationLoaded(config));
     }
@@ -143,19 +149,10 @@ export abstract class World<C extends WorldConfig<LC>, LC extends LayoutConfig> 
         return this.context;
     }
 
-    private setCanvas(canvas: HTMLCanvasElement): void {
-        this.canvas = canvas;
-        let context = canvas.getContext("2d");
-        if(context == null)
-            throw Error("Could not initialize canvas");
-
-        this.context = context;
-    }
-
     private lines: Array<{x1: number, y1: number, x2: number, y2: number, style?: string, width?: number}> = [];
 
     private canvas: HTMLCanvasElement;
     private context: CanvasRenderingContext2D;
 
-    private lastNow: number;
+    private lastNow?: number;
 }

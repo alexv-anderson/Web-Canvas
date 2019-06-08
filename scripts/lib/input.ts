@@ -89,10 +89,10 @@ export class SimpleInputAccumalator implements InputAccumalator {
 
     private _mouseDownPoint?: Point;
 
-    private _arrowUpDown: boolean;
-    private _arrowDownDown: boolean;
-    private _arrowLeftDown: boolean;
-    private _arrowRightDown: boolean;
+    private _arrowUpDown: boolean = false;
+    private _arrowDownDown: boolean = false;
+    private _arrowLeftDown: boolean = false;
+    private _arrowRightDown: boolean = false;
 }
 
 export interface InputAccumalator {

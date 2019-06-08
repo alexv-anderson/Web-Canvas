@@ -3,6 +3,7 @@
     "module": "ES6",
     "noImplicitAny": true,
     "strictNullChecks": true,
+    "strictPropertyInitialization": true,
     "removeComments": true,
     "sourceMap": true,
     "lib": [ "es6", "dom" ],

@@ -202,31 +202,31 @@ export class MultiFrameSprite extends Sprite implements AccessableMultiFrameSpri
     constructor(image: HTMLImageElement, options?: MultiFrameSpriteProperties) {
         if(options) {
             super(image, options);
-
-            if(options.frames) {
-                this.numberOfFrames = options.frames.numberOfFrames;
-                this.framesPerSecond = options.frames.framesPerSecond;
-                this.horizontal = options.frames.areHorizontal;
-                this.loop = options.frames.loop;
-
-                if(options.frames.autoStart) {
-                    this.play();
-                } else {
-                    this.pause();
-                }
-            }
-
         } else {
             super(image);
-
-            this.pause();
         }
 
-        this.numberOfFrames = this.numberOfFrames || 1;
-        this.framesPerSecond = this.framesPerSecond || 32;
-        this.horizontal = this.horizontal !== undefined ? this.horizontal : true;
-        this.loop = this.loop !== undefined ? this.loop : true;
-        this._updateFrame = this._updateFrame !== undefined ? this._updateFrame : false;
+        this._updateFrame = false;
+
+        if(options && options.frames) {
+            this.numberOfFrames = options.frames.numberOfFrames;
+            this.framesPerSecond = options.frames.framesPerSecond;
+            this.horizontal = options.frames.areHorizontal;
+            this.loop = options.frames.loop;
+
+            if(options.frames.autoStart) {
+                this.play();
+            } else {
+                this.pause();
+            }
+        } else {
+            this.numberOfFrames = 1;
+            this.framesPerSecond = 32;
+            this.horizontal = true;
+            this.loop = true;
+            
+            this.pause();
+        }
 
         this.frameIndex = 0;
 
