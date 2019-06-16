@@ -33,6 +33,10 @@ export interface RenderableAtPoint {
     renderAt(context: CanvasRenderingContext2D, point: Point): void;
 }
 
+export interface Accessable {
+    
+}
+
 /**
  * Indicates an object which can be placed somewhere in a 2D plane
  */

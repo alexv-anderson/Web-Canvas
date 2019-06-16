@@ -1,5 +1,5 @@
 
-import { Point, RenderableAtPoint, Updatable } from "./common.js"
+import { Accessable, Point, RenderableAtPoint, Updatable } from "./common.js"
 import { loadPNG } from "./web-loaders.js";
 
 //#region SpriteSheet Locations and Defaults
@@ -45,9 +45,9 @@ interface SpriteDescription extends MultiFrameSpriteProperties {
 }
 //#endregion
 
-export interface AccessableSprite {
-    frameHeight: number;
-    frameWidth: number;
+export interface AccessableSprite extends Accessable {
+    readonly frameHeight: number;
+    readonly frameWidth: number;
 }
 
 /**
