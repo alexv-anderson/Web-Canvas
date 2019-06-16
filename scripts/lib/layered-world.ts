@@ -1,11 +1,11 @@
 
-import { World, WorldConfig, LayoutConfig } from "./world.js";
+import { Canvas2D, Canvas2DConfig } from "./canvas-2D.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
-export interface LayeredWorldConfig<LC extends LayerConfig, LCD extends LayerConfigDefaults, LLC extends LayeredLayoutConfig<LC, LCD>> extends WorldConfig<LLC> {
-    
+export interface LayeredWorldConfig<LC extends LayerConfig, LCD extends LayerConfigDefaults, LLC extends LayeredLayoutConfig<LC, LCD>> extends Canvas2DConfig {
+    layout?: LLC;    
 }
-export interface LayeredLayoutConfig<LC extends LayerConfig, LCD> extends LayoutConfig {
+export interface LayeredLayoutConfig<LC extends LayerConfig, LCD> {
     defaults?: LCD;
     layers: Array<LC>;
     arrangement?: Array<number>;
@@ -26,7 +26,7 @@ export abstract class LayeredWorld<
     LC extends LayerConfig,
     LCD extends LayerConfigDefaults,
     LLC extends LayeredLayoutConfig<LC, LCD>
-    > extends World<C, LLC> {
+    > extends Canvas2D<C> {
 
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);
@@ -64,9 +64,9 @@ export abstract class LayeredWorld<
      * Renders the world
      */
     public render(): void {
-        this.layout.render(this.drawingContext);
-
         super.render();
+
+        this.layout.render(this.drawingContext);
     }
 
     private layout: LayeredLayout<L> = new LayeredLayout<L>();

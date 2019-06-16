@@ -90,21 +90,6 @@ class MyWorld extends SimpleSpriteWorld {
     public onUpdate(dt: number): void {
         super.onUpdate(dt);
         
-        if(this.inputAccumalator.mouseDown && this.inputAccumalator.mouseDownPoint) {
-            if(this.lastClickPoint) {
-                this.addLine(
-                    this.lastClickPoint.x,
-                    this.lastClickPoint.y,
-                    this.inputAccumalator.mouseDownPoint.x,
-                    this.inputAccumalator.mouseDownPoint.y,
-                    "red",
-                    2
-                );
-            }
-
-            this.lastClickPoint = this.inputAccumalator.mouseDownPoint;
-        }
-
         this.inputAccumalator.reset();
     }
 
