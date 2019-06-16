@@ -4,7 +4,7 @@ import { Instance, InteractiveInstance, InteractiveInstanceConfig, PassiveInstan
 import { Point, RenderableAtPoint } from "./common.js";
 import { SpriteGroupConfig, SpriteGroup, SpriteGroupManager, GroupConfigurations } from "./group.js";
 import { SpriteSheetSource, SpriteManager } from "./sprite.js";
-import { LayeredWorld, LayeredWorldConfig, LayeredLayoutConfig } from "./layered-world.js";
+import { LayeredCanvas2D, LayeredCanvas2DConfig, LayeredLayoutConfig } from "./layered-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
 export interface SpriteMultilayerLayoutConfig<
@@ -135,7 +135,7 @@ export interface LayeredSpriteWorldConfig<
     IP extends InstanceProperties,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
-    SLC extends SpriteLayerConfig> extends LayeredWorldConfig<SLC, SMLCD, SMLC> {
+    SLC extends SpriteLayerConfig> extends LayeredCanvas2DConfig<SLC, SMLCD, SMLC> {
         sprites: {
             sources: Array<SpriteSheetSource>;
             groups?: GroupConfigurations<SpriteGroupConfig>;
@@ -146,7 +146,7 @@ export interface LayeredSpriteWorldConfig<
 /**
  * Generic reperesentation of a world which is composed completely of sprites.
  */
-export abstract class GenericPureSpriteWorld<
+export abstract class GenericSpriteLayeredCanvas2D<
     C extends LayeredSpriteWorldConfig<KIP, SMLC, SMLCD, SLC>,
     IA extends InputAccumalator,
     KIP extends KeyedInstanceProperties,
@@ -154,7 +154,7 @@ export abstract class GenericPureSpriteWorld<
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
     SLC extends SpriteLayerConfig
-    > extends LayeredWorld<C, SL, SLC, SMLCD, SMLC> {
+    > extends LayeredCanvas2D<C, SL, SLC, SMLCD, SMLC> {
     
     protected onConfigurationLoaded(config: C): void {
 
@@ -171,18 +171,18 @@ export abstract class GenericPureSpriteWorld<
         super.onConfigurationLoaded(config);
     }
 
-    protected constructLayer(config: SLC, defaults?: SMLCD): SL {
-        return this.constructSpriteLayer(config, this.spriteManager, defaults);
+    protected onConstructLayer(config: SLC, defaults?: SMLCD): SL {
+        return this.onConstructSpriteLayer(config, this.spriteManager, defaults);
     }
 
-    protected constructPassiveInstance(key: string, config: PassiveInstanceConfig<KIP, RenderableAtPoint>): PassiveInstance<KIP, RenderableAtPoint> | never {
+    protected onConstructPassiveInstance(key: string, config: PassiveInstanceConfig<KIP, RenderableAtPoint>): PassiveInstance<KIP, RenderableAtPoint> | never {
         throw new Error("No interactive instance could be created for the key: " + key);
     }
-    protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<IA, KIP, RenderableAtPoint>): InteractiveInstance<IA, KIP, RenderableAtPoint> | never {
+    protected onConstructInteractiveInstance(key: string, config: InteractiveInstanceConfig<IA, KIP, RenderableAtPoint>): InteractiveInstance<IA, KIP, RenderableAtPoint> | never {
         throw new Error("No interactive instance could be created for the key: " + key);
     }
 
-    protected abstract constructSpriteLayer(config: SLC, spriteManager: SpriteManager, defaults?: SMLCD): SL;
+    protected abstract onConstructSpriteLayer(config: SLC, spriteManager: SpriteManager, defaults?: SMLCD): SL;
 
     protected onUpdate(dt: number): void {
         super.onUpdate(dt);
@@ -210,7 +210,7 @@ export abstract class GenericPureSpriteWorld<
      * @param key The key for the sprite in the SpriteMap
      * @param center The center point of the sprite in the world
      */
-    public addAdHocSprite(key: string, center: Point): void {
+    protected addAdHocSprite(key: string, center: Point): void {
         this.adhocSprites.push({
             key: key,
             center: center
@@ -249,7 +249,7 @@ export interface SimpleSpriteMultilayerLayoutConfig extends SpriteMultilayerLayo
 /**
  * Use the simple configuration which should work in most cases
  */
-export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
+export abstract class SimpleSpriteLayeredCanvas2D extends GenericSpriteLayeredCanvas2D<
     SimpleMultilayeredSpriteWorldConfig,
     SimpleInputAccumalator,
     KeyedInstanceProperties,
@@ -263,7 +263,7 @@ export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
         this.ia = new SimpleInputAccumalator(canvas);
     }
 
-    protected constructSpriteLayer(config: SpriteLayerConfig, spriteManager: SpriteManager, defaults?: SpriteMultilayerLayoutConfigDefaults): InstanceBlockLayer<SimpleInputAccumalator, any> {
+    protected onConstructSpriteLayer(config: SpriteLayerConfig, spriteManager: SpriteManager, defaults?: SpriteMultilayerLayoutConfigDefaults): InstanceBlockLayer<SimpleInputAccumalator, any> {
         if(defaults !== undefined) {
             if(config.step === undefined) {
                 config.step = {
@@ -280,14 +280,14 @@ export abstract class SimpleSpriteWorld extends GenericPureSpriteWorld<
             (key: string) => {
                 let config = this.getInteractiveInstanceConfiguration(key);
                 if(config) {
-                    return this.constructInteractiveInstance(key, config);
+                    return this.onConstructInteractiveInstance(key, config);
                 }
                 throw new Error("No configuration found for interactive instance " + key);
             },
             (key: string) => {
                 let config = this.getPassiveInstanceConfiguration(key);
                 if(config) {
-                    return this.constructPassiveInstance(key, config);
+                    return this.onConstructPassiveInstance(key, config);
                 }
                 throw new Error("No configuration found for interactive instance " + key);
             }

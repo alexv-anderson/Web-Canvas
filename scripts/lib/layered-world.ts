@@ -2,7 +2,7 @@
 import { Canvas2D, Canvas2DConfig } from "./canvas-2D.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
-export interface LayeredWorldConfig<LC extends LayerConfig, LCD extends LayerConfigDefaults, LLC extends LayeredLayoutConfig<LC, LCD>> extends Canvas2DConfig {
+export interface LayeredCanvas2DConfig<LC extends LayerConfig, LCD extends LayerConfigDefaults, LLC extends LayeredLayoutConfig<LC, LCD>> extends Canvas2DConfig {
     layout?: LLC;    
 }
 export interface LayeredLayoutConfig<LC extends LayerConfig, LCD> {
@@ -20,8 +20,8 @@ export interface LayerConfigDefaults {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class LayeredWorld<
-    C extends LayeredWorldConfig<LC, LCD, LLC>,
+export abstract class LayeredCanvas2D<
+    C extends LayeredCanvas2DConfig<LC, LCD, LLC>,
     L extends Layer,
     LC extends LayerConfig,
     LCD extends LayerConfigDefaults,
@@ -35,9 +35,9 @@ export abstract class LayeredWorld<
             let constructedLayers = new Array<L>();
             if(config.layout.defaults !== undefined) {
                 let defaults = config.layout.defaults;
-                constructedLayers = config.layout.layers.map(layerConfig => this.constructLayer(layerConfig, defaults));
+                constructedLayers = config.layout.layers.map(layerConfig => this.onConstructLayer(layerConfig, defaults));
             } else {
-                constructedLayers = config.layout.layers.map(layerConfig => this.constructLayer(layerConfig));
+                constructedLayers = config.layout.layers.map(layerConfig => this.onConstructLayer(layerConfig));
             }
 
             if(config.layout.arrangement) {
@@ -52,7 +52,7 @@ export abstract class LayeredWorld<
      * Constructs and returns a list of the layers for the world
      * @param config Configuration data for the layers
      */
-    protected abstract constructLayer(config: LC, defaults?: LCD): L;
+    protected abstract onConstructLayer(config: LC, defaults?: LCD): L;
 
     protected onUpdate(dt: number) {
         super.onUpdate(dt);

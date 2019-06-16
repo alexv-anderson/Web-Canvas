@@ -1,7 +1,7 @@
-import { SimpleSpriteWorld, SimpleMultilayeredSpriteWorldConfig, KeyedInstanceProperties } from "./lib/layered-sprite-world.js";
+import { SimpleSpriteLayeredCanvas2D, SimpleMultilayeredSpriteWorldConfig, KeyedInstanceProperties } from "./lib/layered-sprite-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { PassiveInstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance } from "./lib/instance.js";
-import { Point, RenderableAtPoint } from "./lib/common.js";
+import { RenderableAtPoint } from "./lib/common.js";
 import { SpriteGroup } from "./lib/group.js";
 
 /*
@@ -64,27 +64,27 @@ class BlinkTile extends PassiveInstance<KeyedInstanceProperties, SpriteGroup> {
     private timePassed: number = 0;
 }
 
-class MyWorld extends SimpleSpriteWorld {
+class MyWorld extends SimpleSpriteLayeredCanvas2D {
     protected onConfigurationLoaded(config: SimpleMultilayeredSpriteWorldConfig): void {
         super.onConfigurationLoaded(config);
     }
 
-    protected constructInteractiveInstance(key: string, config: InteractiveInstanceConfig<SimpleInputAccumalator, any, SpriteGroup>): InteractiveInstance<SimpleInputAccumalator, any, RenderableAtPoint> | never {
+    protected onConstructInteractiveInstance(key: string, config: InteractiveInstanceConfig<SimpleInputAccumalator, any, SpriteGroup>): InteractiveInstance<SimpleInputAccumalator, any, RenderableAtPoint> | never {
         if(key === "Soldier") {
             return new Soldier(config);
         } else if(key === "ToggleTile") {
             return new ToggleTile(config);
         }
         
-        return super.constructInteractiveInstance(key, config);
+        return super.onConstructInteractiveInstance(key, config);
     }
 
-    protected constructPassiveInstance(key: string, config: PassiveInstanceConfig<any, SpriteGroup>): PassiveInstance<any, RenderableAtPoint> | never {
+    protected onConstructPassiveInstance(key: string, config: PassiveInstanceConfig<any, SpriteGroup>): PassiveInstance<any, RenderableAtPoint> | never {
         if(key = "BlinkTile") {
             return new BlinkTile(config);
         }
 
-        return super.constructPassiveInstance(key, config);
+        return super.onConstructPassiveInstance(key, config);
     }
 
     public onUpdate(dt: number): void {
@@ -92,8 +92,6 @@ class MyWorld extends SimpleSpriteWorld {
         
         this.inputAccumalator.reset();
     }
-
-    private lastClickPoint?: Point;
 }
 
 window.onload = function() {
