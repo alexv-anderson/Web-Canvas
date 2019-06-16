@@ -75,9 +75,6 @@ export class SimpleInputAccumalator implements InputAccumalator {
         return this._arrowRightDown;
     }
 
-    /**
-     * Resets all of the data
-     */
     public reset(): void {
         this._mouseDownPoint = undefined;
 
@@ -95,6 +92,9 @@ export class SimpleInputAccumalator implements InputAccumalator {
     private _arrowRightDown: boolean = false;
 }
 
+/**
+ * Resets all of the data
+ */
 export interface InputAccumalator {
     reset(): void;
 }

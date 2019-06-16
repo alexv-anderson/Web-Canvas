@@ -5,13 +5,7 @@ import { Placeable, Point, Renderable, Updatable } from "./common.js";
  * Represents a layer of sprites which for the background/floor
  */
 export interface Layer extends Renderable, Updatable {
-    update(dt: number): void;
-    
-    /**
-     * Renders the layer on the supplied canvas
-     * @param context The rendering context of the canvas on which the layer should be rendered
-     */
-    render(context: CanvasRenderingContext2D): void;
+
 }
 
 /**
@@ -43,10 +37,6 @@ export class LayeredLayout<L extends Layer> implements Renderable, Updatable {
         return this.layers.length;
     }
 
-    /**
-     * Renders the layers of the layout in order
-     * @param context The rendering context of the canvas on which the layout should be rendered
-     */
     public render(context: CanvasRenderingContext2D): void {
         this.layers.forEach((layer: Layer) => { layer.render(context); });
     }
