@@ -1,7 +1,7 @@
 
 import { loadJSON } from "./web-loaders.js";
 
-export interface Canvas2DConfig {
+export interface FlatWorldConfig {
     view: {
         width: number,
         height: number
@@ -11,7 +11,7 @@ export interface Canvas2DConfig {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class Canvas2D<C extends Canvas2DConfig> {
+export abstract class FlatWorld<C extends FlatWorldConfig> {
     /**
      * Initializes the world
      * @param canvas The canvas

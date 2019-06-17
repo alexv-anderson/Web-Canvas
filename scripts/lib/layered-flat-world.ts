@@ -1,8 +1,8 @@
 
-import { Canvas2D, Canvas2DConfig } from "./canvas-2D.js";
+import { FlatWorld, FlatWorldConfig } from "./flat-world.js";
 import { Layer, LayeredLayout } from "./layer.js";
 
-export interface LayeredCanvas2DConfig<LC extends LayerConfig, LCD extends LayerConfigDefaults, LLC extends LayeredLayoutConfig<LC, LCD>> extends Canvas2DConfig {
+export interface LayeredFlatWorldConfig<LC extends LayerConfig, LCD extends LayerConfigDefaults, LLC extends LayeredLayoutConfig<LC, LCD>> extends FlatWorldConfig {
     layout?: LLC;    
 }
 export interface LayeredLayoutConfig<LC extends LayerConfig, LCD> {
@@ -20,13 +20,13 @@ export interface LayerConfigDefaults {
 /**
  * Reperesents everything on the canvas
  */
-export abstract class LayeredCanvas2D<
-    C extends LayeredCanvas2DConfig<LC, LCD, LLC>,
+export abstract class LayeredFlatWorld<
+    C extends LayeredFlatWorldConfig<LC, LCD, LLC>,
     L extends Layer,
     LC extends LayerConfig,
     LCD extends LayerConfigDefaults,
     LLC extends LayeredLayoutConfig<LC, LCD>
-    > extends Canvas2D<C> {
+    > extends FlatWorld<C> {
 
     protected onConfigurationLoaded(config: C): void {
         super.onConfigurationLoaded(config);

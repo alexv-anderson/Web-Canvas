@@ -1,4 +1,4 @@
-import { SimpleSpriteLayeredCanvas2D, SimpleMultilayeredSpriteWorldConfig, KeyedInstanceProperties } from "./lib/layered-sprite-world.js";
+import { SimpleSpriteLayeredFlatWorld, SimpleMultilayeredSpriteWorldConfig, KeyedInstanceProperties } from "./lib/sprite-layered-flat-world.js";
 import { SimpleInputAccumalator } from "./lib/input.js"
 import { PassiveInstanceConfig, InteractiveInstance, InteractiveInstanceConfig, PassiveInstance } from "./lib/instance.js";
 import { RenderableAtPoint } from "./lib/common.js";
@@ -64,7 +64,7 @@ class BlinkTile extends PassiveInstance<KeyedInstanceProperties, SpriteGroup> {
     private timePassed: number = 0;
 }
 
-class MyWorld extends SimpleSpriteLayeredCanvas2D {
+class MyWorld extends SimpleSpriteLayeredFlatWorld {
     protected onConfigurationLoaded(config: SimpleMultilayeredSpriteWorldConfig): void {
         super.onConfigurationLoaded(config);
     }

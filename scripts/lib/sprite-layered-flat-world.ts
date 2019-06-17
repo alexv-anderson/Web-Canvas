@@ -4,7 +4,7 @@ import { Instance, InteractiveInstance, InteractiveInstanceConfig, PassiveInstan
 import { Point, RenderableAtPoint } from "./common.js";
 import { SpriteGroupConfig, SpriteGroup, SpriteGroupManager, GroupConfigurations } from "./group.js";
 import { SpriteSheetSource, SpriteManager } from "./sprite.js";
-import { LayeredCanvas2D, LayeredCanvas2DConfig, LayeredLayoutConfig } from "./layered-world.js";
+import { LayeredFlatWorld, LayeredFlatWorldConfig, LayeredLayoutConfig } from "./layered-flat-world.js";
 import { Block, BlockGridLayer } from "./layer.js";
 
 export interface SpriteMultilayerLayoutConfig<
@@ -135,7 +135,7 @@ export interface LayeredSpriteWorldConfig<
     IP extends InstanceProperties,
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
-    SLC extends SpriteLayerConfig> extends LayeredCanvas2DConfig<SLC, SMLCD, SMLC> {
+    SLC extends SpriteLayerConfig> extends LayeredFlatWorldConfig<SLC, SMLCD, SMLC> {
         sprites: {
             sources: Array<SpriteSheetSource>;
             groups?: GroupConfigurations<SpriteGroupConfig>;
@@ -146,7 +146,7 @@ export interface LayeredSpriteWorldConfig<
 /**
  * Generic reperesentation of a world which is composed completely of sprites.
  */
-export abstract class GenericSpriteLayeredCanvas2D<
+export abstract class GenericSpriteLayeredFlatWorld<
     C extends LayeredSpriteWorldConfig<KIP, SMLC, SMLCD, SLC>,
     IA extends InputAccumalator,
     KIP extends KeyedInstanceProperties,
@@ -154,7 +154,7 @@ export abstract class GenericSpriteLayeredCanvas2D<
     SMLC extends SpriteMultilayerLayoutConfig<SLC, SMLCD>,
     SMLCD extends SpriteMultilayerLayoutConfigDefaults,
     SLC extends SpriteLayerConfig
-    > extends LayeredCanvas2D<C, SL, SLC, SMLCD, SMLC> {
+    > extends LayeredFlatWorld<C, SL, SLC, SMLCD, SMLC> {
     
     protected onConfigurationLoaded(config: C): void {
 
@@ -249,7 +249,7 @@ export interface SimpleSpriteMultilayerLayoutConfig extends SpriteMultilayerLayo
 /**
  * Use the simple configuration which should work in most cases
  */
-export abstract class SimpleSpriteLayeredCanvas2D extends GenericSpriteLayeredCanvas2D<
+export abstract class SimpleSpriteLayeredFlatWorld extends GenericSpriteLayeredFlatWorld<
     SimpleMultilayeredSpriteWorldConfig,
     SimpleInputAccumalator,
     KeyedInstanceProperties,

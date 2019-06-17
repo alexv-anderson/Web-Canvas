@@ -10,7 +10,7 @@
     "target": "es6"
   },
   "files": [
-    "scripts/lib/layered-sprite-world.ts",
+    "scripts/lib/sprite-layered-flat-world.ts",
     "scripts/example.ts"
   ]
 }
