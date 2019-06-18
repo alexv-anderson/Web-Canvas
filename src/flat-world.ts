@@ -1,5 +1,5 @@
 
-import { loadJSON } from "../../node_modules/web-tools/javascript/web-loaders.js";
+import { loadJSON } from "../node_modules/web-tools/javascript/web-loaders.js";
 
 export interface FlatWorldConfig {
     view: {
