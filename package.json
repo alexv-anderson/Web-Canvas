@@ -1,10 +1,10 @@
 {
-  "name": "canvas",
+  "name": "web-canvas",
   "version": "0.0.0",
   "dependencies": {
-    "web-tools": "alexv-anderson/Web-Tools"
+    "web-tools": "github:alexv-anderson/Web-Tools"
   },
   "author": {
-      "name": "Alex Anderson"
+    "name": "Alex Anderson"
   }
 }
