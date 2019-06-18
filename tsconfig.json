@@ -7,10 +7,10 @@
     "removeComments": true,
     "sourceMap": true,
     "lib": [ "es6", "dom" ],
-    "target": "es6"
+    "target": "es6",
+    "moduleResolution": "node"
   },
   "files": [
-    "scripts/lib/sprite-layered-flat-world.ts",
-    "scripts/example.ts"
+    "src/sprite-layered-flat-world.ts"
   ]
 }

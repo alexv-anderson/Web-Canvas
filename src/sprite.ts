@@ -1,6 +1,6 @@
 
 import { Accessable, Point, RenderableAtPoint, Updatable } from "./common.js"
-import { loadPNG } from "../node_modules/web-tools/javascript/web-loaders.js";
+import { loadPNG } from "web-tools";
 
 //#region SpriteSheet Locations and Defaults
 export interface SpriteSheetSource {
