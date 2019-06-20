@@ -6,5 +6,7 @@
   },
   "dependencies": {
     "web-tools": "github:alexv-anderson/Web-Tools"
-  }
+  },
+  "main": "./src/sprite-layered-flat-world.js",
+  "types": "./src/sprite-layered-flat-world"
 }
