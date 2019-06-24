@@ -4,7 +4,9 @@
   "author": {
     "name": "Alex Anderson"
   },
-  "dependencies": {},
+  "dependencies": {
+    "web-tools": "github:alexv-anderson/Web-Tools"
+  },
   "main": "./src/index.js",
   "types": "./src/index"
 }
